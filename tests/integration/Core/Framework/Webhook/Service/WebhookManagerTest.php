@@ -964,6 +964,8 @@ class WebhookManagerTest extends TestCase
      */
     private function createApp(?string $appId = null, bool $active = true, ?string $aclRoleId = null, ?array $webhooks = null, ?array $permissions = null): void
     {
+        $context = Context::createDefaultContext();
+
         $app = [
             'name' => 'SwagApp',
             'active' => $active,
@@ -990,11 +992,11 @@ class WebhookManagerTest extends TestCase
             $app['aclRole']['id'] = $aclRoleId;
         }
 
-        $this->appRepository->create([$app], Context::createDefaultContext());
+        $this->appRepository->create([$app], $context);
 
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('name', $app['name']));
-        $app = $this->appRepository->search($criteria, Context::createDefaultContext())->getEntities()->first();
+        $app = $this->appRepository->search($criteria, $context)->getEntities()->first();
 
         static::assertNotNull($app);
 
@@ -1016,7 +1018,7 @@ class WebhookManagerTest extends TestCase
                 'permissions' => $permissions,
             ]);
 
-            $permissionPersister->updatePrivileges($permissions, $aclRoleId);
+            $permissionPersister->updatePrivileges($permissions, $appId, false, $context);
         }
     }
 

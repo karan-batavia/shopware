@@ -28,8 +28,12 @@ class AppLifecycleIterator
      *
      * @return list<array{manifest: Manifest, exception: \Exception}>
      */
-    public function iterateOverApps(AbstractAppLifecycle $appLifecycle, bool $activate, Context $context, array $installAppNames = []): array
-    {
+    public function iterateOverApps(
+        AbstractAppLifecycle $appLifecycle,
+        AppOptions $options,
+        Context $context,
+        array $installAppNames = []
+    ): array {
         $appsFromFileSystem = $this->appLoader->load();
         $installedApps = $this->getRegisteredApps($context);
 
@@ -42,7 +46,11 @@ class AppLifecycleIterator
 
             try {
                 if (!\array_key_exists($manifest->getMetadata()->getName(), $installedApps)) {
-                    $appLifecycle->install($manifest, $activate, $context);
+                    $appLifecycle->install(
+                        $manifest,
+                        $options,
+                        $context
+                    );
                     $successfulUpdates[] = $manifest->getMetadata()->getName();
 
                     continue;
@@ -50,7 +58,12 @@ class AppLifecycleIterator
 
                 $app = $installedApps[$manifest->getMetadata()->getName()];
                 if (version_compare($manifest->getMetadata()->getVersion(), $app['version']) > 0) {
-                    $appLifecycle->update($manifest, $app, $context);
+                    $appLifecycle->update(
+                        $manifest,
+                        $options,
+                        $app,
+                        $context
+                    );
                 }
                 $successfulUpdates[] = $manifest->getMetadata()->getName();
             } catch (\Exception $exception) {

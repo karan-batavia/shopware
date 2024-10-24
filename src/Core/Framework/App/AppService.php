@@ -4,6 +4,7 @@ namespace Shopware\Core\Framework\App;
 
 use Shopware\Core\Framework\App\Lifecycle\AbstractAppLifecycle;
 use Shopware\Core\Framework\App\Lifecycle\AppLifecycleIterator;
+use Shopware\Core\Framework\App\Lifecycle\AppOptions;
 use Shopware\Core\Framework\App\Lifecycle\RefreshableAppDryRun;
 use Shopware\Core\Framework\App\Manifest\Manifest;
 use Shopware\Core\Framework\Context;
@@ -26,16 +27,31 @@ class AppService
      *
      * @return list<array{manifest: Manifest, exception: \Exception}>
      */
-    public function doRefreshApps(bool $activateInstalled, Context $context, array $installAppNames = []): array
-    {
-        return $this->appLifecycleIterator->iterateOverApps($this->appLifecycle, $activateInstalled, $context, $installAppNames);
+    public function doRefreshApps(
+        AppOptions $options,
+        Context $context,
+        array $installAppNames = []
+    ): array {
+        return $this->appLifecycleIterator->iterateOverApps(
+            $this->appLifecycle,
+            $options,
+            $context,
+            $installAppNames
+        );
     }
 
     public function getRefreshableAppInfo(Context $context): RefreshableAppDryRun
     {
         $appInfo = new RefreshableAppDryRun();
 
-        $this->appLifecycleIterator->iterateOverApps($appInfo, false, $context);
+        $this->appLifecycleIterator->iterateOverApps(
+            $appInfo,
+            new AppOptions(
+                activate: false,
+                acceptPermissions: false
+            ),
+            $context
+        );
 
         return $appInfo;
     }

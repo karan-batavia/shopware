@@ -20,6 +20,7 @@ use Shopware\Core\Framework\App\Event\AppUpdatedEvent;
 use Shopware\Core\Framework\App\Event\Hooks\AppDeletedHook;
 use Shopware\Core\Framework\App\Event\Hooks\AppInstalledHook;
 use Shopware\Core\Framework\App\Event\Hooks\AppUpdatedHook;
+use Shopware\Core\Framework\App\Event\PostAppDeletedEvent;
 use Shopware\Core\Framework\App\Exception\AppRegistrationException;
 use Shopware\Core\Framework\App\Flow\Action\Action;
 use Shopware\Core\Framework\App\Flow\Event\Event;
@@ -118,7 +119,7 @@ class AppLifecycle extends AbstractAppLifecycle
         throw new DecorationPatternException(self::class);
     }
 
-    public function install(Manifest $manifest, bool $activate, Context $context): void
+    public function install(Manifest $manifest, AppOptions $options, Context $context): void
     {
         $this->ensureIsCompatible($manifest);
 
@@ -133,26 +134,26 @@ class AppLifecycle extends AbstractAppLifecycle
         $roleId = Uuid::randomHex();
         $metadata = $this->enrichInstallMetadata($manifest, $metadata, $roleId);
 
-        $app = $this->updateApp($manifest, $metadata, $appId, $roleId, $defaultLocale, $context, true);
+        $app = $this->updateApp($manifest, $options, $metadata, $appId, $roleId, $defaultLocale, $context, true);
 
         $event = new AppInstalledEvent($app, $manifest, $context);
         $this->eventDispatcher->dispatch($event);
         $this->scriptExecutor->execute(new AppInstalledHook($event));
 
-        if ($activate) {
+        if ($options->activate) {
             $this->appStateService->activateApp($appId, $context);
         }
 
         $this->updateAclRole($app->getName(), $context);
     }
 
-    public function update(Manifest $manifest, array $app, Context $context): void
+    public function update(Manifest $manifest, AppOptions $options, array $app, Context $context): void
     {
         $this->ensureIsCompatible($manifest);
 
         $defaultLocale = $this->getDefaultLocale($context);
         $metadata = $manifest->getMetadata()->toArray($defaultLocale);
-        $appEntity = $this->updateApp($manifest, $metadata, $app['id'], $app['roleId'], $defaultLocale, $context, false);
+        $appEntity = $this->updateApp($manifest, $options, $metadata, $app['id'], $app['roleId'], $defaultLocale, $context, false);
 
         $event = new AppUpdatedEvent($appEntity, $manifest, $context);
         $this->eventDispatcher->dispatch($event);
@@ -185,6 +186,7 @@ class AppLifecycle extends AbstractAppLifecycle
      */
     private function updateApp(
         Manifest $manifest,
+        AppOptions $options,
         array $metadata,
         string $id,
         string $roleId,
@@ -214,7 +216,12 @@ class AppLifecycle extends AbstractAppLifecycle
 
         $this->updateCustomEntities($app, $manifest);
 
-        $this->permissionPersister->updatePrivileges($manifest->getPermissions(), $roleId);
+        $this->permissionPersister->updatePrivileges(
+            $manifest->getPermissions(),
+            $app->getId(),
+            $options->acceptPermissions,
+            $context
+        );
 
         // If the app has no secret yet, but now specifies setup data we do a registration to get an app secret
         // this mostly happens during install, but may happen in the update case if the app previously worked without an external server
@@ -394,6 +401,9 @@ class AppLifecycle extends AbstractAppLifecycle
 
             $this->deleteAclRole($app->getName(), $context);
         });
+
+        $event = new PostAppDeletedEvent($app->getId(), $context, $keepUserData);
+        $this->eventDispatcher->dispatch($event);
     }
 
     private function markCustomEntitiesAsDeleted(string $appId, bool $keepUserData, Context $context): void

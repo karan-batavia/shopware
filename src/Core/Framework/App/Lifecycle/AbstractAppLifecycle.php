@@ -14,12 +14,12 @@ abstract class AbstractAppLifecycle
 {
     abstract public function getDecorated(): AbstractAppLifecycle;
 
-    abstract public function install(Manifest $manifest, bool $activate, Context $context): void;
+    abstract public function install(Manifest $manifest, AppOptions $options, Context $context): void;
 
     /**
      * @param array{id: string, roleId: string} $app
      */
-    abstract public function update(Manifest $manifest, array $app, Context $context): void;
+    abstract public function update(Manifest $manifest, AppOptions $options, array $app, Context $context): void;
 
     /**
      * @param array{id: string} $app
