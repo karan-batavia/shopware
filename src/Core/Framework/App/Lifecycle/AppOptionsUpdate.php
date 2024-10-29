@@ -8,10 +8,9 @@ use Shopware\Core\Framework\Log\Package;
  * @internal
  */
 #[Package('core')]
-class AppOptions
+class AppOptionsUpdate
 {
     public function __construct(
-        public readonly bool $activate = true,
         public readonly bool $acceptPermissions = true
     ) {
     }

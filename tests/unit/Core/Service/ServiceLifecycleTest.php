@@ -11,6 +11,7 @@ use Shopware\Core\Framework\App\AppEntity;
 use Shopware\Core\Framework\App\AppException;
 use Shopware\Core\Framework\App\AppStateService;
 use Shopware\Core\Framework\App\Lifecycle\AbstractAppLifecycle;
+use Shopware\Core\Framework\App\Lifecycle\AppOptionsInstall;
 use Shopware\Core\Framework\App\Manifest\Manifest;
 use Shopware\Core\Framework\App\Manifest\ManifestFactory;
 use Shopware\Core\Framework\App\Source\TemporaryDirectoryFactory;
@@ -24,7 +25,7 @@ use Shopware\Core\Service\ServiceClient;
 use Shopware\Core\Service\ServiceClientFactory;
 use Shopware\Core\Service\ServiceException;
 use Shopware\Core\Service\ServiceLifecycle;
-use Shopware\Core\Service\ServicePermissions;
+use Shopware\Core\Service\ServicePrivileges;
 use Shopware\Core\Service\ServiceRegistryClient;
 use Shopware\Core\Service\ServiceRegistryEntry;
 use Shopware\Core\Service\ServiceSourceResolver;
@@ -55,7 +56,7 @@ class ServiceLifecycleTest extends TestCase
 
     private AppStateService&MockObject $appState;
 
-    private ServicePermissions&MockObject $servicePermissions;
+    private ServicePrivileges&MockObject $servicePermissions;
 
     private AppInfo $appInfo;
 
@@ -76,7 +77,7 @@ class ServiceLifecycleTest extends TestCase
         $this->serviceRegistryClient = $this->createMock(ServiceRegistryClient::class);
         $this->sourceResolver = $this->createMock(ServiceSourceResolver::class);
         $this->appState = $this->createMock(AppStateService::class);
-        $this->servicePermissions = $this->createMock(ServicePermissions::class);
+        $this->servicePermissions = $this->createMock(ServicePrivileges::class);
         $this->appRepo = new StaticEntityRepository([
             [], // empty search for app -> service migration
         ]);
@@ -325,8 +326,8 @@ class ServiceLifecycleTest extends TestCase
 
         $this->appLifecycle->expects(static::once())
             ->method('install')
-            ->willReturnCallback(function (Manifest $manifest, bool $activate): void {
-                static::assertFalse($activate);
+            ->willReturnCallback(function (Manifest $manifest, AppOptionsInstall $options): void {
+                static::assertFalse($options->activate);
                 static::assertSame('https://mycoolservice.com', $manifest->getPath());
                 static::assertSame([
                     'version' => '6.6.0.0',

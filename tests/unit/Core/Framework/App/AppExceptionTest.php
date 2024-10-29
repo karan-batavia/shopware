@@ -158,4 +158,13 @@ class AppExceptionTest extends TestCase
         static::assertSame('FRAMEWORK__APP_DIRECTORY_CREATION_FAILED', $e->getErrorCode());
         static::assertSame('Unable to create directory "path/to/app". Please check permissions', $e->getMessage());
     }
+
+    public function testInvalidPermissions(): void
+    {
+        $e = AppException::invalidPermissions();
+
+        static::assertEquals(Response::HTTP_BAD_REQUEST, $e->getStatusCode());
+        static::assertEquals('FRAMEWORK__APP_MINVALID_PERMISSIONS', $e->getErrorCode());
+        static::assertEquals('Expected a list of permissions in the format "category:read"', $e->getMessage());
+    }
 }

@@ -7,7 +7,7 @@ use Shopware\Core\Framework\App\AppException;
 use Shopware\Core\Framework\App\AppService;
 use Shopware\Core\Framework\App\Exception\AppValidationException;
 use Shopware\Core\Framework\App\Exception\UserAbortedCommandException;
-use Shopware\Core\Framework\App\Lifecycle\AppOptions;
+use Shopware\Core\Framework\App\Lifecycle\AppOptionsInstall;
 use Shopware\Core\Framework\App\Lifecycle\RefreshableAppDryRun;
 use Shopware\Core\Framework\App\Manifest\Manifest;
 use Shopware\Core\Framework\App\Validation\ManifestValidator;
@@ -95,7 +95,7 @@ class RefreshAppCommand extends Command
 
         // in the future: if it was forced then it counts as not accepted, eg: $input->getOption('force') === false
         $fails = $this->appService->doRefreshApps(
-            new AppOptions(
+            new AppOptionsInstall(
                 activate: $input->getOption('activate'),
                 acceptPermissions: true
             ),

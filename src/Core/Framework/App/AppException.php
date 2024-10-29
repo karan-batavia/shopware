@@ -2,6 +2,7 @@
 
 namespace Shopware\Core\Framework\App;
 
+use Shopware\Core\Framework\Api\Context\ContextSource;
 use Shopware\Core\Framework\App\Exception\AppAlreadyInstalledException;
 use Shopware\Core\Framework\App\Exception\AppNotFoundException;
 use Shopware\Core\Framework\App\Exception\AppRegistrationException;
@@ -38,6 +39,9 @@ class AppException extends HttpException
     public const CHECKOUT_GATEWAY_PAYLOAD_INVALID_CODE = 'FRAMEWORK__APP_CHECKOUT_GATEWAY_PAYLOAD_INVALID';
     public const USER_ABORTED = 'FRAMEWORK__APP_USER_ABORTED';
     public const CANNOT_READ_FILE = 'FRAMEWORK__APP_CANNOT_READ_FILE';
+    public const REQUIRES_ADMIN_API_SOURCE = 'FRAMEWORK__APP_ACTION_REQUIRES_ADMIN_API_SOURCE';
+    public const MISSING_USER_IN_CONTEXT_SOURCE = 'FRAMEWORK__APP_MISSING_USER_IN_CONTEXT_SOURCE';
+    public const INVALID_PERMISSIONS = 'FRAMEWORK__APP_MINVALID_PERMISSIONS';
     public const APP_ACTION_NOT_FOUND = 'FRAMEWORK__APP_ACTION_NOT_FOUND';
     public const JWKS_KEY_NOT_FOUND = 'FRAMEWORK__APP_JWKS_KEY_NOT_FOUND';
     final public const APP_UNALLOWED_HOST = 'APP__UNALLOWED_HOST';
@@ -396,6 +400,48 @@ class AppException extends HttpException
             self::APP_DIRECTORY_CREATION_FAILED,
             'Unable to create directory "{{ path }}". Please check permissions',
             ['path' => $path]
+        );
+    }
+
+    /**
+     * @param class-string<ContextSource> $contextSource
+     */
+    public static function missingUserInContextSource(
+        string $contextSource,
+        ?\Throwable $previous = null
+    ): self {
+        return new self(
+            Response::HTTP_INTERNAL_SERVER_ERROR,
+            self::MISSING_USER_IN_CONTEXT_SOURCE,
+            'No user available in context source "{{ contextSource }}"',
+            ['contextSource' => $contextSource],
+            $previous,
+        );
+    }
+
+    /**
+     * @param class-string<ContextSource> $expectedContextSource
+     * @param class-string<ContextSource> $actualContextSource
+     */
+    public static function invalidContextSource(string $expectedContextSource, string $actualContextSource): self
+    {
+        return new self(
+            Response::HTTP_INTERNAL_SERVER_ERROR,
+            self::REQUIRES_ADMIN_API_SOURCE,
+            'Expected context source to be "{{ expectedContextSource }}" but got "{{ actualContextSource }}".',
+            [
+                'expectedContextSource' => $expectedContextSource,
+                'actualContextSource' => $actualContextSource,
+            ],
+        );
+    }
+
+    public static function invalidPermissions(): self
+    {
+        return new self(
+            Response::HTTP_BAD_REQUEST,
+            self::INVALID_PERMISSIONS,
+            'Expected a list of permissions in the format "category:read"',
         );
     }
 }

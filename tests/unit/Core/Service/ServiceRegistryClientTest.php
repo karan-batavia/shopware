@@ -67,7 +67,8 @@ class ServiceRegistryClientTest extends TestCase
 
     public function testSuccessfulRequestReturnsListOfServices(): void
     {
-        $service = [
+        $payload = [
+            'dataAgreementUrl' => 'https://services.shopware.com/agreement',
             'services' => [
                 ['name' => 'MyCoolService1', 'host' => 'https://coolservice1.com', 'label' => 'My Cool Service 1', 'app-endpoint' => '/app-endpoint'],
                 ['name' => 'MyCoolService2', 'host' => 'https://coolservice2.com', 'label' => 'My Cool Service 2', 'app-endpoint' => '/app-endpoint', 'license-sync-endpoint' => '/license-sync-endpoint'],
@@ -75,7 +76,7 @@ class ServiceRegistryClientTest extends TestCase
         ];
 
         $client = new MockHttpClient([
-            $response = new MockResponse((string) json_encode($service)),
+            $response = new MockResponse((string) json_encode($payload)),
         ]);
 
         $registryClient = new ServiceRegistryClient('https://www.shopware.com/services.json', $client);
@@ -99,7 +100,8 @@ class ServiceRegistryClientTest extends TestCase
 
     public function testServicesAreFetchedAndCached(): void
     {
-        $service = [
+        $payload = [
+            'dataAgreementUrl' => 'https://services.shopware.com/agreement',
             'services' => [
                 ['name' => 'MyCoolService1', 'host' => 'https://coolservice1.com', 'label' => 'My Cool Service 1', 'app-endpoint' => '/app-endpoint'],
                 ['name' => 'MyCoolService2', 'host' => 'https://coolservice2.com', 'label' => 'My Cool Service 2', 'app-endpoint' => '/app-endpoint'],
@@ -107,7 +109,7 @@ class ServiceRegistryClientTest extends TestCase
         ];
 
         $client = new MockHttpClient([
-            new MockResponse((string) json_encode($service)),
+            new MockResponse((string) json_encode($payload)),
         ]);
 
         $registryClient = new ServiceRegistryClient('https://www.shopware.com/services.json', $client);
@@ -125,14 +127,16 @@ class ServiceRegistryClientTest extends TestCase
 
     public function testResetCausesRefetch(): void
     {
-        $services1 = [
+        $payload1 = [
+            'dataAgreementUrl' => 'https://services.shopware.com/agreement',
             'services' => [
                 ['name' => 'MyCoolService1', 'host' => 'https://coolservice1.com', 'label' => 'My Cool Service 1', 'app-endpoint' => '/app-endpoint'],
                 ['name' => 'MyCoolService2', 'host' => 'https://coolservice2.com', 'label' => 'My Cool Service 2', 'app-endpoint' => '/app-endpoint'],
             ],
         ];
 
-        $services2 = [
+        $payload2 = [
+            'dataAgreementUrl' => 'https://services.shopware.com/agreement',
             'services' => [
                 ['name' => 'MyCoolService1', 'host' => 'https://coolservice1.com', 'label' => 'My Cool Service 1', 'app-endpoint' => '/app-endpoint'],
                 ['name' => 'MyCoolService2', 'host' => 'https://coolservice2.com', 'label' => 'My Cool Service 2', 'app-endpoint' => '/app-endpoint'],
@@ -141,8 +145,8 @@ class ServiceRegistryClientTest extends TestCase
         ];
 
         $client = new MockHttpClient([
-            new MockResponse((string) json_encode($services1)),
-            new MockResponse((string) json_encode($services2)),
+            new MockResponse((string) json_encode($payload1)),
+            new MockResponse((string) json_encode($payload2)),
         ]);
 
         $registryClient = new ServiceRegistryClient('https://www.shopware.com/services.json', $client);

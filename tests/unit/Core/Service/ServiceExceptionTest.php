@@ -4,7 +4,9 @@ namespace Shopware\Tests\Unit\Core\Service;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Shopware\Core\Framework\Api\Context\AdminApiSource;
 use Shopware\Core\Framework\Api\Context\ShopApiSource;
+use Shopware\Core\Framework\Api\Context\SystemSource;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\Service\ServiceException;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,7 +33,7 @@ class ServiceExceptionTest extends TestCase
         $e = ServiceException::updateRequiresAdminApiSource($source);
 
         static::assertEquals(Response::HTTP_BAD_REQUEST, $e->getStatusCode());
-        static::assertEquals(ServiceException::SERVICE_UPDATE_REQUIRES_ADMIN_API_SOURCE, $e->getErrorCode());
+        static::assertEquals(ServiceException::REQUIRES_ADMIN_API_SOURCE, $e->getErrorCode());
         static::assertEquals('Updating a service requires Shopware\Core\Framework\Api\Context\AdminApiSource, but got Shopware\Core\Framework\Api\Context\ShopApiSource', $e->getMessage());
     }
 
@@ -105,5 +107,23 @@ class ServiceExceptionTest extends TestCase
         static::assertEquals(Response::HTTP_BAD_REQUEST, $e->getStatusCode());
         static::assertEquals(ServiceException::SERVICE_CANNOT_WRITE_APP, $e->getErrorCode());
         static::assertEquals('Error writing app zip to file "/some/path"', $e->getMessage());
+    }
+
+    public function testMissingUserInContextSource(): void
+    {
+        $e = ServiceException::missingUserInContextSource(AdminApiSource::class);
+
+        static::assertEquals(Response::HTTP_INTERNAL_SERVER_ERROR, $e->getStatusCode());
+        static::assertEquals(ServiceException::MISSING_USER_IN_CONTEXT_SOURCE, $e->getErrorCode());
+        static::assertEquals('No user available in context source "Shopware\Core\Framework\Api\Context\AdminApiSource"', $e->getMessage());
+    }
+
+    public function testInvalidContextSource(): void
+    {
+        $e = ServiceException::invalidContextSource(AdminApiSource::class, SystemSource::class);
+
+        static::assertEquals(Response::HTTP_INTERNAL_SERVER_ERROR, $e->getStatusCode());
+        static::assertEquals(ServiceException::REQUIRES_ADMIN_API_SOURCE, $e->getErrorCode());
+        static::assertEquals('Expected context source to be "Shopware\Core\Framework\Api\Context\AdminApiSource" but got "Shopware\Core\Framework\Api\Context\SystemSource".', $e->getMessage());
     }
 }

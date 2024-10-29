@@ -23,15 +23,21 @@ class CreateAppCommandTest extends TestCase
 
     private string $appDir;
 
+    private ?string $columns;
+
     protected function setUp(): void
     {
         $this->appLifecycle = new RefreshableAppDryRun();
         $this->appDir = __DIR__ . '/_fixtures/create-app-project';
+        $this->columns = $_ENV['COLUMNS'] ?? null;
+        // so the terminal width is consistent and no new lines in output depending on terminal settings
+        putenv('COLUMNS=200');
     }
 
     protected function tearDown(): void
     {
         $this->removeApp();
+        putenv('COLUMNS=' . $this->columns);
     }
 
     public function testSuccessfulCreateCommand(): void
@@ -225,14 +231,18 @@ class CreateAppCommandTest extends TestCase
 
         $commandTester->execute(['name' => self::APP_NAME]);
 
+        $display = (string) preg_replace('/\s+/', ' ', trim($commandTester->getDisplay(true)));
+        // path can be very long and skew the output over multiple lines so we replace the path with something shorter
+        $display = str_replace($this->appDir, 'app-dir', $display);
+
         static::assertStringContainsString(
             'Creating app structure under TestApp',
-            (string) preg_replace('/\s+/', ' ', trim($commandTester->getDisplay(true)))
+            $display
         );
 
         static::assertStringContainsString(
             'Directory for app "TestApp" already exists',
-            (string) preg_replace('/\s+/', ' ', trim($commandTester->getDisplay(true)))
+            $display
         );
     }
 

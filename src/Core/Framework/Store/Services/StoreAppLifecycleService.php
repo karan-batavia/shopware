@@ -7,7 +7,8 @@ use Shopware\Core\Framework\App\AppStateService;
 use Shopware\Core\Framework\App\Delta\AppConfirmationDeltaProvider;
 use Shopware\Core\Framework\App\Lifecycle\AbstractAppLifecycle;
 use Shopware\Core\Framework\App\Lifecycle\AppLoader;
-use Shopware\Core\Framework\App\Lifecycle\AppOptions;
+use Shopware\Core\Framework\App\Lifecycle\AppOptionsInstall;
+use Shopware\Core\Framework\App\Lifecycle\AppOptionsUpdate;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Aggregation\Bucket\FilterAggregation;
@@ -46,7 +47,7 @@ class StoreAppLifecycleService extends AbstractStoreAppLifecycleService
             throw StoreException::extensionInstallException(\sprintf('Cannot find app by name %s', $technicalName));
         }
 
-        $this->appLifecycle->install($manifests[$technicalName], new AppOptions(activate: false), $context);
+        $this->appLifecycle->install($manifests[$technicalName], new AppOptionsInstall(activate: false), $context);
     }
 
     public function uninstallExtension(string $technicalName, Context $context, bool $keepUserData = false): void
@@ -114,7 +115,7 @@ class StoreAppLifecycleService extends AbstractStoreAppLifecycleService
 
         $this->appLifecycle->update(
             $manifests[$technicalName],
-            new AppOptions(),
+            new AppOptionsUpdate(),
             [
                 'id' => $app->getId(),
                 'version' => $app->getVersion(),

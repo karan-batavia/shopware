@@ -18,10 +18,23 @@ class ServiceRegistryClient implements ResetInterface
      */
     private ?array $services = null;
 
+    private ?string $dataAgreementUrl = null;
+
     public function __construct(
         private readonly string $registryUrl,
         private readonly HttpClientInterface $client,
     ) {
+    }
+
+    public function getDataAgreementUrl(): string
+    {
+        $this->getAll();
+
+        if ($this->dataAgreementUrl !== null) {
+            return (string) $this->dataAgreementUrl;
+        }
+
+        return '';
     }
 
     public function get(string $name): ServiceRegistryEntry
@@ -63,6 +76,8 @@ class ServiceRegistryClient implements ResetInterface
                 return [];
             }
 
+            $this->dataAgreementUrl = $content['dataAgreementUrl'];
+
             return $this->services = array_map(
                 static fn (array $service) => new ServiceRegistryEntry(
                     $service['name'],
@@ -89,6 +104,10 @@ class ServiceRegistryClient implements ResetInterface
      */
     private function validateResponse(array $content): bool
     {
+        if (!isset($content['dataAgreementUrl'])) {
+            return false;
+        }
+
         if (!isset($content['services'])) {
             return false;
         }

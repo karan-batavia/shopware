@@ -70,7 +70,7 @@
 
         <service id="Shopware\Core\Framework\App\Lifecycle\Persister\PermissionPersister">
             <argument type="service" id="Doctrine\DBAL\Connection"/>
-            <argument type="service" id="event_dispatcher"/>
+            <argument type="service" id="Shopware\Core\Framework\App\Privileges\Privileges"/>
         </service>
 
         <service id="Shopware\Core\Framework\App\Lifecycle\Persister\ActionButtonPersister">
@@ -393,6 +393,16 @@
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>
+        </service>
+
+        <service id="Shopware\Core\Framework\App\Api\AppPermissionController" public="true">
+            <argument type="service" id="Shopware\Core\Framework\App\Privileges\Privileges"/>
+        </service>
+
+        <service id="Shopware\Core\Framework\App\Privileges\Privileges">
+            <argument type="service" id="Doctrine\DBAL\Connection"/>
+            <argument type="service" id="event_dispatcher"/>
+
         </service>
 
         <service id="Shopware\Core\Framework\App\Api\AppJWTGenerateRoute" public="true">

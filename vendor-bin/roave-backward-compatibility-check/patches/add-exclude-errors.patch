@@ -1,7 +1,7 @@
 --- /dev/null
 +++ ../src/CompareClasses.php
 @@ -16,11 +16,15 @@
- 
+
  final class CompareClasses implements CompareApi
  {
 +    private array $excludePatterns;
@@ -14,18 +14,18 @@
 +        $excludes = require getcwd() . '/.bc-exclude.php';
 +        $this->excludePatterns = $excludes['errors'];
      }
- 
+
      public function __invoke(
 @@ -40,11 +44,24 @@
              },
          );
- 
+
 -        return Changes::fromIterator($this->makeSymbolsIterator(
 +        $filteredSymbolIterator = function (iterable $symbols): iterable {
 +            /** @var Change $symbol */
 +            foreach($symbols as $symbol) {
 +                foreach($this->excludePatterns as $pattern) {
-+                    if(0 < preg_match("/$pattern/", $symbol->__toString())) {
++                    if(0 < preg_match("/$pattern/s", $symbol->__toString())) {
 +                        continue 2;
 +                    }
 +                }
@@ -41,7 +41,7 @@
 -        ));
 +        )));
      }
- 
+
      /**
 @@ -58,7 +75,12 @@
          Reflector $newSourcesWithDependencies,
@@ -54,6 +54,6 @@
 +                yield Change::skippedDueToFailure($e);
 +                continue;
 +            }
- 
+
              yield from $this->examineSymbol($oldSymbol, $newSourcesWithDependencies);
          }

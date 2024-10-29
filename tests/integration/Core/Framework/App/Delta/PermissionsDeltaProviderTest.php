@@ -7,7 +7,7 @@ use Shopware\Core\Framework\App\AppCollection;
 use Shopware\Core\Framework\App\Delta\PermissionsDeltaProvider;
 use Shopware\Core\Framework\App\Lifecycle\AbstractAppLifecycle;
 use Shopware\Core\Framework\App\Lifecycle\AppLifecycle;
-use Shopware\Core\Framework\App\Lifecycle\AppOptions;
+use Shopware\Core\Framework\App\Lifecycle\AppOptionsInstall;
 use Shopware\Core\Framework\App\Manifest\Manifest;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
@@ -32,7 +32,7 @@ class PermissionsDeltaProviderTest extends TestCase
         $context = Context::createDefaultContext();
         $manifest = $this->getTestManifest();
 
-        $this->getAppLifecycle()->install($manifest, new AppOptions(activate: false), $context);
+        $this->getAppLifecycle()->install($manifest, new AppOptionsInstall(activate: false), $context);
 
         $criteria = (new Criteria())
             ->addFilter(new EqualsFilter('name', 'test'))
@@ -62,7 +62,7 @@ class PermissionsDeltaProviderTest extends TestCase
         $context = Context::createDefaultContext();
         $manifest = $this->getTestManifest();
 
-        $this->getAppLifecycle()->install($manifest, new AppOptions(activate: false), $context);
+        $this->getAppLifecycle()->install($manifest, new AppOptionsInstall(activate: false), $context);
 
         $criteria = (new Criteria())
             ->addFilter(new EqualsFilter('name', 'test'))

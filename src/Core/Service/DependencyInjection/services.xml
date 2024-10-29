@@ -16,23 +16,22 @@
             <argument type="service" id="Shopware\Core\Framework\App\Lifecycle\AppLifecycle"/>
         </service>
 
+        <service id="Shopware\Core\Service\Api\ConsentController" public="true">
+            <argument type="service" id="Shopware\Core\Service\ServicePrivileges"/>
+            <argument type="service" id="Shopware\Core\Service\ServiceRegistryClient"/>
+        </service>
+
         <service id="Shopware\Core\Service\Command\Install">
             <argument type="service" id="Shopware\Core\Service\AllServiceInstaller"/>
 
             <tag name="console.command" />
         </service>
 
-        <service id="Shopware\Core\Service\ServicePermissions">
+        <service id="Shopware\Core\Service\ServicePrivileges">
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
             <argument type="service" id="Doctrine\DBAL\Connection"/>
-            <argument type="service" id="Shopware\Core\Framework\App\Lifecycle\Persister\PermissionPersister"/>
+            <argument type="service" id="Shopware\Core\Framework\App\Privileges\Privileges"/>
 
-        </service>
-
-        <service id="Shopware\Core\Service\Command\AcceptPermissions">
-            <argument type="service" id="Shopware\Core\Service\ServicePermissions"/>
-
-            <tag name="console.command" />
         </service>
 
         <service id="Shopware\Core\Service\ServiceRegistryClient">
@@ -51,7 +50,7 @@
             <argument type="service" id="Shopware\Core\Framework\App\Manifest\ManifestFactory"/>
             <argument type="service" id="Shopware\Core\Service\ServiceSourceResolver"/>
             <argument type="service" id="Shopware\Core\Framework\App\AppStateService"/>
-            <argument type="service" id="Shopware\Core\Service\ServicePermissions"/>
+            <argument type="service" id="Shopware\Core\Service\ServicePrivileges"/>
         </service>
 
         <service id="Shopware\Core\Service\ServiceClientFactory">

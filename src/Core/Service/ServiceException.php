@@ -4,6 +4,7 @@ namespace Shopware\Core\Service;
 
 use Shopware\Core\Framework\Api\Context\AdminApiSource;
 use Shopware\Core\Framework\Api\Context\ContextSource;
+use Shopware\Core\Framework\Feature;
 use Shopware\Core\Framework\HttpException;
 use Shopware\Core\Framework\Log\Package;
 use Symfony\Component\HttpClient\Exception\JsonException;
@@ -14,8 +15,18 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 class ServiceException extends HttpException
 {
     public const NOT_FOUND = 'SERVICE__NOT_FOUND';
+
+    /**
+     * @deprecated tag:v6.7.0 - Will be removed without replacement
+     */
     public const INTEGRATION_NOT_ALLOWED_TO_UPDATE_SERVICE = 'SERVICE__INTEGRATION_NOT_ALLOWED_TO_UPDATE_SERVICE';
+
+    /**
+     * @deprecated tag:v6.7.0 - Will be removed without replacement
+     */
     public const SERVICE_UPDATE_REQUIRES_ADMIN_API_SOURCE = 'SERVICE__UPDATE_REQUIRES_ADMIN_API_SOURCE';
+    public const REQUIRES_ADMIN_API_SOURCE = 'SERVICE__ACTION_REQUIRES_ADMIN_API_SOURCE';
+    public const MISSING_USER_IN_CONTEXT_SOURCE = 'SERVICE_MISSING_USER_IN_CONTEXT_SOURCE';
     public const SERVICE_UPDATE_REQUIRES_INTEGRATION = 'SERVICE__UPDATE_REQUIRES_INTEGRATION';
     public const SERVICE_REQUEST_TRANSPORT_ERROR = 'SERVICE__TRANSPORT';
     public const SERVICE_MISSING_APP_VERSION_INFO = 'SERVICE__MISSING_APP_INFO';
@@ -43,7 +54,7 @@ class ServiceException extends HttpException
     {
         return new self(
             Response::HTTP_BAD_REQUEST,
-            self::SERVICE_UPDATE_REQUIRES_ADMIN_API_SOURCE,
+            self::REQUIRES_ADMIN_API_SOURCE,
             'Updating a service requires {{ class }}, but got {{ actualContextSource }}',
             [
                 'class' => AdminApiSource::class,
@@ -84,8 +95,16 @@ class ServiceException extends HttpException
         );
     }
 
+    /**
+     * @deprecated tag:v6.7.0 - Will be removed without replacement
+     */
     public static function toggleActionNotAllowed(): self
     {
+        Feature::triggerDeprecationOrThrow(
+            'v6.7.0.0',
+            Feature::deprecatedMethodMessage(self::class, __METHOD__, 'v6.7.0.0')
+        );
+
         return new self(
             Response::HTTP_BAD_REQUEST,
             self::SERVICE_TOGGLE_ACTION_NOT_ALLOWED,
@@ -136,6 +155,39 @@ class ServiceException extends HttpException
             self::SERVICE_CANNOT_WRITE_APP,
             'Error writing app zip to file "{{ file }}"',
             ['file' => $file]
+        );
+    }
+
+    /**
+     * @param class-string<ContextSource> $contextSource
+     */
+    public static function missingUserInContextSource(
+        string $contextSource,
+        ?\Throwable $previous = null
+    ): self {
+        return new self(
+            Response::HTTP_INTERNAL_SERVER_ERROR,
+            self::MISSING_USER_IN_CONTEXT_SOURCE,
+            'No user available in context source "{{ contextSource }}"',
+            ['contextSource' => $contextSource],
+            $previous,
+        );
+    }
+
+    /**
+     * @param class-string<ContextSource> $expectedContextSource
+     * @param class-string<ContextSource> $actualContextSource
+     */
+    public static function invalidContextSource(string $expectedContextSource, string $actualContextSource): self
+    {
+        return new self(
+            Response::HTTP_INTERNAL_SERVER_ERROR,
+            self::REQUIRES_ADMIN_API_SOURCE,
+            'Expected context source to be "{{ expectedContextSource }}" but got "{{ actualContextSource }}".',
+            [
+                'expectedContextSource' => $expectedContextSource,
+                'actualContextSource' => $actualContextSource,
+            ],
         );
     }
 }

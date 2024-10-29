@@ -30,7 +30,7 @@ class AppLifecycleIterator
      */
     public function iterateOverApps(
         AbstractAppLifecycle $appLifecycle,
-        AppOptions $options,
+        AppOptionsInstall $options,
         Context $context,
         array $installAppNames = []
     ): array {
@@ -60,7 +60,7 @@ class AppLifecycleIterator
                 if (version_compare($manifest->getMetadata()->getVersion(), $app['version']) > 0) {
                     $appLifecycle->update(
                         $manifest,
-                        $options,
+                        new AppOptionsUpdate($options->activate),
                         $app,
                         $context
                     );

@@ -119,7 +119,7 @@ class AppLifecycle extends AbstractAppLifecycle
         throw new DecorationPatternException(self::class);
     }
 
-    public function install(Manifest $manifest, AppOptions $options, Context $context): void
+    public function install(Manifest $manifest, AppOptionsInstall $options, Context $context): void
     {
         $this->ensureIsCompatible($manifest);
 
@@ -134,7 +134,16 @@ class AppLifecycle extends AbstractAppLifecycle
         $roleId = Uuid::randomHex();
         $metadata = $this->enrichInstallMetadata($manifest, $metadata, $roleId);
 
-        $app = $this->updateApp($manifest, $options, $metadata, $appId, $roleId, $defaultLocale, $context, true);
+        $app = $this->updateApp(
+            $manifest,
+            new AppOptionsUpdate($options->acceptPermissions),
+            $metadata,
+            $appId,
+            $roleId,
+            $defaultLocale,
+            $context,
+            true
+        );
 
         $event = new AppInstalledEvent($app, $manifest, $context);
         $this->eventDispatcher->dispatch($event);
@@ -147,7 +156,7 @@ class AppLifecycle extends AbstractAppLifecycle
         $this->updateAclRole($app->getName(), $context);
     }
 
-    public function update(Manifest $manifest, AppOptions $options, array $app, Context $context): void
+    public function update(Manifest $manifest, AppOptionsUpdate $options, array $app, Context $context): void
     {
         $this->ensureIsCompatible($manifest);
 
@@ -171,6 +180,9 @@ class AppLifecycle extends AbstractAppLifecycle
         $this->removeAppAndRole($appEntity, $context, $keepUserData, true);
         $this->assetService->removeAssets($appEntity->getName());
         $this->customEntitySchemaUpdater->update();
+
+        $event = new PostAppDeletedEvent($appEntity->getName(), $appEntity->getSourceType(), $context, $keepUserData);
+        $this->eventDispatcher->dispatch($event);
     }
 
     public function ensureIsCompatible(Manifest $manifest): void
@@ -186,7 +198,7 @@ class AppLifecycle extends AbstractAppLifecycle
      */
     private function updateApp(
         Manifest $manifest,
-        AppOptions $options,
+        AppOptionsUpdate $options,
         array $metadata,
         string $id,
         string $roleId,
@@ -401,9 +413,6 @@ class AppLifecycle extends AbstractAppLifecycle
 
             $this->deleteAclRole($app->getName(), $context);
         });
-
-        $event = new PostAppDeletedEvent($app->getId(), $context, $keepUserData);
-        $this->eventDispatcher->dispatch($event);
     }
 
     private function markCustomEntitiesAsDeleted(string $appId, bool $keepUserData, Context $context): void
