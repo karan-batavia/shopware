@@ -396,6 +396,7 @@
         </service>
 
         <service id="Shopware\Core\Framework\App\Api\AppPermissionController" public="true">
+            <argument type="service" id="Doctrine\DBAL\Connection"/>
             <argument type="service" id="Shopware\Core\Framework\App\Privileges\Privileges"/>
         </service>
 

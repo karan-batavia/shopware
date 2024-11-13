@@ -280,8 +280,8 @@ class PrivilegesTest extends TestCase
 
         static::assertSame(
             [
-                $appId1 => ['customer:read', 'customer:update'],
-                $appId2 => ['product:read', 'product:update'],
+                'TestApp' => ['customer:read', 'customer:update'],
+                'App2' => ['product:read', 'product:update'],
             ],
             $this->privileges->getPendingPrivilegesForAllApps()
         );

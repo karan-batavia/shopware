@@ -72,7 +72,7 @@ class Privileges
         /** @var array<string, string> $privileges */
         $privileges = $this->connection->fetchAllKeyValue(
             <<<'SQL'
-                SELECT LOWER(HEX(app.id)) AS app_id, acl_role.requested_privileges
+                SELECT app.name, acl_role.requested_privileges
                 FROM acl_role
                 JOIN app ON acl_role.id = app.acl_role_id
                 WHERE app.active = 1

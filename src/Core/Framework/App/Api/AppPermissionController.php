@@ -2,6 +2,7 @@
 
 namespace Shopware\Core\Framework\App\Api;
 
+use Doctrine\DBAL\Connection;
 use Shopware\Core\Framework\Api\Context\AdminApiSource;
 use Shopware\Core\Framework\App\AppException;
 use Shopware\Core\Framework\App\Privileges\Privileges;
@@ -20,8 +21,10 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Package('core')]
 class AppPermissionController
 {
-    public function __construct(private readonly Privileges $privileges)
-    {
+    public function __construct(
+        private readonly Connection $connection,
+        private readonly Privileges $privileges
+    ) {
     }
 
     #[Route(path: '/api/app-system/permissions/requested', name: 'api.app_system.permissions.requested', methods: [Request::METHOD_GET])]
@@ -37,8 +40,8 @@ class AppPermissionController
         ]);
     }
 
-    #[Route(path: '/api/app-system/{appId}/permissions/accept', name: 'api.app_system.permissions.accept', methods: [Request::METHOD_POST])]
-    public function acceptPermissions(Request $request, Context $context, string $appId): Response
+    #[Route(path: '/api/app-system/{appName}/permissions/accept', name: 'api.app_system.permissions.accept', methods: [Request::METHOD_POST])]
+    public function acceptPermissions(Request $request, Context $context, string $appName): Response
     {
         $userId = $this->getUserIdFromContext($context);
 
@@ -49,13 +52,26 @@ class AppPermissionController
             throw AppException::invalidPermissions();
         }
 
+        $id = $this->fetchAppId($appName);
+
         try {
-            $this->privileges->acceptOnly($appId, $permissionsToAccept, $context);
+            $this->privileges->acceptOnly($id, $permissionsToAccept, $context);
         } catch (\Throwable) {
             // no-op
         }
 
         return new Response(status: Response::HTTP_NO_CONTENT);
+    }
+
+    private function fetchAppId(string $appName): string
+    {
+        $id = $this->connection->fetchOne('SELECT LOWER(HEX(id)) FROM app WHERE name = ?', [$appName]);
+
+        if (!$id) {
+            throw AppException::notFoundByField($appName, 'name');
+        }
+
+        return $id;
     }
 
     private function getUserIdFromContext(Context $context): string

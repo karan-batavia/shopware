@@ -2,6 +2,7 @@
 
 namespace Shopware\Tests\Unit\Core\Framework\App\Api;
 
+use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -20,12 +21,15 @@ class AppPermissionControllerTest extends TestCase
 {
     private AppPermissionController $controller;
 
+    private Connection&MockObject $connection;
+
     private Privileges&MockObject $privileges;
 
     protected function setUp(): void
     {
+        $this->connection = $this->createMock(Connection::class);
         $this->privileges = $this->createMock(Privileges::class);
-        $this->controller = new AppPermissionController($this->privileges);
+        $this->controller = new AppPermissionController($this->connection, $this->privileges);
     }
 
     public function testGetRequestedPermissionsWithWrongSource(): void
@@ -54,8 +58,8 @@ class AppPermissionControllerTest extends TestCase
             ->method('getPendingPrivilegesForAllApps')
             ->with()
             ->willReturn([
-                'app-id-1' => ['customer:read', 'customer:update'],
-                'app-id-2' => ['product:read', 'product:update'],
+                'App1' => ['customer:read', 'customer:update'],
+                'App2' => ['product:read', 'product:update'],
             ]);
 
         $response = $this->controller->getRequestedPermissions($context);
@@ -65,7 +69,7 @@ class AppPermissionControllerTest extends TestCase
         static::assertSame(
             [
                 'requestedPermissions' => [
-                    'app-id-1' => [
+                    'App1' => [
                         'customer' => [
                             [
                                 'extensions' => [],
@@ -79,7 +83,7 @@ class AppPermissionControllerTest extends TestCase
                             ],
                         ],
                     ],
-                    'app-id-2' => [
+                    'App2' => [
                         'product' => [
                             [
                                 'extensions' => [],
@@ -152,16 +156,41 @@ class AppPermissionControllerTest extends TestCase
         static::assertSame(204, $response->getStatusCode());
     }
 
+    public function testAcceptPermissionsWithNonExistentAppName(): void
+    {
+        $context = Context::createDefaultContext(new AdminApiSource('user-id'));
+
+        $this->connection->expects(static::once())
+            ->method('fetchOne')
+            ->with('SELECT LOWER(HEX(id)) FROM app WHERE name = ?', ['appName'])
+            ->willReturn(false);
+
+        $this->privileges->expects(static::never())->method('acceptOnly');
+
+        static::expectException(AppException::class);
+        static::expectExceptionMessage('Could not find app with name "appName"');
+
+        $request = new Request(content: (string) json_encode(['customer:read', 'customer:update']));
+        $response = $this->controller->acceptPermissions($request, $context, 'appName');
+
+        static::assertSame(204, $response->getStatusCode());
+    }
+
     public function testAcceptPermissions(): void
     {
         $context = Context::createDefaultContext(new AdminApiSource('user-id'));
+
+        $this->connection->expects(static::once())
+            ->method('fetchOne')
+            ->with('SELECT LOWER(HEX(id)) FROM app WHERE name = ?', ['appName'])
+            ->willReturn('app-id-1');
 
         $this->privileges->expects(static::once())
             ->method('acceptOnly')
             ->with('app-id-1', ['customer:read', 'customer:update'], $context);
 
         $request = new Request(content: (string) json_encode(['customer:read', 'customer:update']));
-        $response = $this->controller->acceptPermissions($request, $context, 'app-id-1');
+        $response = $this->controller->acceptPermissions($request, $context, 'appName');
 
         static::assertSame(204, $response->getStatusCode());
     }
