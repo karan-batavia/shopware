@@ -41,18 +41,11 @@ class PrivilegesTest extends TestCase
 
         $this->privileges->setPrivileges($appId, ['customer:read', 'customer:update'], $context);
 
-        $role = $this->connection->fetchAllAssociative(
-            'SELECT privileges, requested_privileges FROM acl_role WHERE name = \'TestApp\''
-        );
-
-        static::assertCount(1, $role);
-
-        static::assertSame(
+        $this->assertPrivileges(
+            'TestApp',
             ['customer:read', 'customer:update'],
-            json_decode($role[0]['privileges'], true, \JSON_THROW_ON_ERROR)
+            [],
         );
-
-        static::assertNull($role[0]['requested_privileges']);
     }
 
     public function testRequestPrivileges(): void
@@ -62,20 +55,10 @@ class PrivilegesTest extends TestCase
 
         $this->privileges->requestPrivileges($appId, ['customer:read', 'customer:update'], $context);
 
-        $role = $this->connection->fetchAllAssociative(
-            'SELECT privileges, requested_privileges FROM acl_role WHERE name = \'TestApp\''
-        );
-
-        static::assertCount(1, $role);
-
-        static::assertSame(
+        $this->assertPrivileges(
+            'TestApp',
             [],
-            json_decode($role[0]['privileges'], true, \JSON_THROW_ON_ERROR)
-        );
-
-        static::assertSame(
             ['customer:read', 'customer:update'],
-            json_decode($role[0]['requested_privileges'], true, \JSON_THROW_ON_ERROR)
         );
     }
 
@@ -87,20 +70,10 @@ class PrivilegesTest extends TestCase
         $this->privileges->setPrivileges($appId, ['customer:read', 'customer:update'], $context);
         $this->privileges->requestPrivileges($appId, ['customer:read', 'customer:write'], $context);
 
-        $role = $this->connection->fetchAllAssociative(
-            'SELECT privileges, requested_privileges FROM acl_role WHERE name = \'TestApp\''
-        );
-
-        static::assertCount(1, $role);
-
-        static::assertSame(
+        $this->assertPrivileges(
+            'TestApp',
             ['customer:read'],
-            json_decode($role[0]['privileges'], true, \JSON_THROW_ON_ERROR)
-        );
-
-        static::assertSame(
             ['customer:write'],
-            json_decode($role[0]['requested_privileges'], true, \JSON_THROW_ON_ERROR)
         );
     }
 
@@ -112,18 +85,11 @@ class PrivilegesTest extends TestCase
         $this->privileges->setPrivileges($appId, ['product:read', 'product:update'], $context);
         $this->privileges->requestPrivileges($appId, ['product:read', 'product:update'], $context);
 
-        $role = $this->connection->fetchAllAssociative(
-            'SELECT privileges, requested_privileges FROM acl_role WHERE name = \'TestApp\''
-        );
-
-        static::assertCount(1, $role);
-
-        static::assertSame(
+        $this->assertPrivileges(
+            'TestApp',
             ['product:read', 'product:update'],
-            json_decode($role[0]['privileges'], true, \JSON_THROW_ON_ERROR)
+            [],
         );
-
-        static::assertNull($role[0]['requested_privileges']);
     }
 
     public function testRevokeAllPrivileges(): void
@@ -134,32 +100,19 @@ class PrivilegesTest extends TestCase
         $this->privileges->setPrivileges($appId, ['product:read', 'product:update'], $context);
         $this->privileges->requestPrivileges($appId, ['customer:read', 'customer:update', 'product:read', 'product:update'], $context);
 
-        $role = $this->connection->fetchAllAssociative(
-            'SELECT privileges, requested_privileges FROM acl_role WHERE name = \'TestApp\''
-        );
-
-        static::assertCount(1, $role);
-
-        static::assertSame(
+        $this->assertPrivileges(
+            'TestApp',
             ['product:read', 'product:update'],
-            json_decode($role[0]['privileges'], true, \JSON_THROW_ON_ERROR)
-        );
-
-        static::assertSame(
-            ['customer:read', 'customer:update'],
-            json_decode($role[0]['requested_privileges'], true, \JSON_THROW_ON_ERROR)
+            ['customer:read', 'customer:update']
         );
 
         $this->privileges->revokeAllForApps([$appId], $context);
 
-        $role = $this->connection->fetchAllAssociative(
-            'SELECT privileges, requested_privileges FROM acl_role WHERE name = \'TestApp\''
+        $this->assertPrivileges(
+            'TestApp',
+            [],
+            []
         );
-
-        static::assertCount(1, $role);
-
-        static::assertSame([], json_decode($role[0]['privileges'], true, \JSON_THROW_ON_ERROR));
-        static::assertSame([], json_decode($role[0]['requested_privileges'], true, \JSON_THROW_ON_ERROR));
     }
 
     public function testAcceptAllPrivilegesAcceptsRequestedPrivileges(): void
@@ -169,33 +122,18 @@ class PrivilegesTest extends TestCase
 
         $this->privileges->requestPrivileges($appId, ['customer:read', 'customer:update'], $context);
 
-        $role = $this->connection->fetchAllAssociative(
-            'SELECT privileges, requested_privileges FROM acl_role WHERE name = \'TestApp\''
-        );
-
-        static::assertCount(1, $role);
-
-        static::assertSame(
+        $this->assertPrivileges(
+            'TestApp',
             [],
-            json_decode($role[0]['privileges'], true, \JSON_THROW_ON_ERROR)
-        );
-
-        static::assertSame(
-            ['customer:read', 'customer:update'],
-            json_decode($role[0]['requested_privileges'], true, \JSON_THROW_ON_ERROR)
+            ['customer:read', 'customer:update']
         );
 
         $this->privileges->acceptAllForApps([$appId], $context);
 
-        $role = $this->connection->fetchAllAssociative(
-            'SELECT privileges, requested_privileges FROM acl_role WHERE name = \'TestApp\''
-        );
-
-        static::assertCount(1, $role);
-        static::assertSame([], json_decode($role[0]['requested_privileges'], true, \JSON_THROW_ON_ERROR));
-        static::assertSame(
+        $this->assertPrivileges(
+            'TestApp',
             ['customer:read', 'customer:update'],
-            json_decode($role[0]['privileges'], true, \JSON_THROW_ON_ERROR)
+            [],
         );
     }
 
@@ -206,33 +144,18 @@ class PrivilegesTest extends TestCase
 
         $this->privileges->requestPrivileges($appId, ['customer:read', 'customer:update'], $context);
 
-        $role = $this->connection->fetchAllAssociative(
-            'SELECT privileges, requested_privileges FROM acl_role WHERE name = \'TestApp\''
-        );
-
-        static::assertCount(1, $role);
-
-        static::assertSame(
+        $this->assertPrivileges(
+            'TestApp',
             [],
-            json_decode($role[0]['privileges'], true, \JSON_THROW_ON_ERROR)
-        );
-
-        static::assertSame(
             ['customer:read', 'customer:update'],
-            json_decode($role[0]['requested_privileges'], true, \JSON_THROW_ON_ERROR)
         );
 
         $this->privileges->acceptOnly($appId, ['customer:update'], $context);
 
-        $role = $this->connection->fetchAllAssociative(
-            'SELECT privileges, requested_privileges FROM acl_role WHERE name = \'TestApp\''
-        );
-
-        static::assertCount(1, $role);
-        static::assertSame(['customer:read'], json_decode($role[0]['requested_privileges'], true, \JSON_THROW_ON_ERROR));
-        static::assertSame(
+        $this->assertPrivileges(
+            'TestApp',
             ['customer:update'],
-            json_decode($role[0]['privileges'], true, \JSON_THROW_ON_ERROR)
+            ['customer:read'],
         );
     }
 
@@ -285,6 +208,31 @@ class PrivilegesTest extends TestCase
             ],
             $this->privileges->getPendingPrivilegesForAllApps()
         );
+    }
+
+    /**
+     * @param list<string> $expectedPrivileges
+     * @param list<string> $expectedRequestedPrivileges
+     */
+    private function assertPrivileges(
+        string $appName,
+        array $expectedPrivileges,
+        array $expectedRequestedPrivileges
+    ): void {
+        $privileges = $this->connection->fetchAllAssociative(
+            <<<'SQL'
+                SELECT acl_role.privileges as privileges, app.requested_privileges as requested_privileges
+                FROM app
+                INNER JOIN acl_role ON (acl_role.id = app.acl_role_id)
+                WHERE app.name = :name
+            SQL,
+            ['name' => $appName]
+        );
+
+        static::assertCount(1, $privileges);
+
+        static::assertSame($expectedPrivileges, json_decode($privileges[0]['privileges'], true, \JSON_THROW_ON_ERROR));
+        static::assertSame($expectedRequestedPrivileges, json_decode($privileges[0]['requested_privileges'], true, \JSON_THROW_ON_ERROR));
     }
 
     private function createApp(string $name = 'TestApp'): string

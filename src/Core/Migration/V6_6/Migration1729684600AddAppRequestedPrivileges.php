@@ -10,7 +10,7 @@ use Shopware\Core\Framework\Migration\MigrationStep;
  * @internal
  */
 #[Package('core')]
-class Migration1729684600addRolePrivilegeRequest extends MigrationStep
+class Migration1729684600AddAppRequestedPrivileges extends MigrationStep
 {
     public function getCreationTimestamp(): int
     {
@@ -21,7 +21,7 @@ class Migration1729684600addRolePrivilegeRequest extends MigrationStep
     {
         $this->addColumn(
             $connection,
-            'acl_role',
+            'app',
             'requested_privileges',
             'json',
         );

@@ -8,14 +8,14 @@ use PHPUnit\Framework\TestCase;
 use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\Framework\Migration\ColumnExistsTrait;
 use Shopware\Core\Framework\Test\TestCaseBase\KernelLifecycleManager;
-use Shopware\Core\Migration\V6_6\Migration1729684600addRolePrivilegeRequest;
+use Shopware\Core\Migration\V6_6\Migration1729684600AddAppRequestedPrivileges;
 
 /**
  * @internal
  */
 #[Package('core')]
-#[CoversClass(Migration1729684600addRolePrivilegeRequest::class)]
-class Migration1729684600addRolePrivilegeRequestTest extends TestCase
+#[CoversClass(Migration1729684600AddAppRequestedPrivileges::class)]
+class Migration1729684600AddAppRequestedPrivilegesTest extends TestCase
 {
     use ColumnExistsTrait;
 
@@ -27,7 +27,7 @@ class Migration1729684600addRolePrivilegeRequestTest extends TestCase
 
         try {
             $this->connection->executeStatement(
-                'ALTER TABLE `acl_role` DROP COLUMN `requested_privileges`;'
+                'ALTER TABLE `app` DROP COLUMN `requested_privileges`;'
             );
         } catch (\Throwable) {
         }
@@ -35,12 +35,12 @@ class Migration1729684600addRolePrivilegeRequestTest extends TestCase
 
     public function testMigration(): void
     {
-        static::assertFalse($this->columnExists($this->connection, 'acl_role', 'requested_privileges'));
+        static::assertFalse($this->columnExists($this->connection, 'app', 'requested_privileges'));
 
-        $migration = new Migration1729684600addRolePrivilegeRequest();
+        $migration = new Migration1729684600AddAppRequestedPrivileges();
         $migration->update($this->connection);
         $migration->update($this->connection);
 
-        static::assertTrue($this->columnExists($this->connection, 'acl_role', 'requested_privileges'));
+        static::assertTrue($this->columnExists($this->connection, 'app', 'requested_privileges'));
     }
 }

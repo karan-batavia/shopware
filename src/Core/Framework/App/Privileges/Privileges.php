@@ -72,9 +72,8 @@ class Privileges
         /** @var array<string, string> $privileges */
         $privileges = $this->connection->fetchAllKeyValue(
             <<<'SQL'
-                SELECT app.name, acl_role.requested_privileges
-                FROM acl_role
-                JOIN app ON acl_role.id = app.acl_role_id
+                SELECT name, requested_privileges
+                FROM app
                 WHERE app.active = 1
             SQL,
         );
@@ -92,10 +91,9 @@ class Privileges
         /** @var array<string, string> $privileges */
         $privileges = $this->connection->fetchAllKeyValue(
             <<<'SQL'
-                SELECT LOWER(HEX(app.id)) AS app_id, acl_role.requested_privileges
-                FROM acl_role
-                JOIN app ON acl_role.id = app.acl_role_id
-                WHERE app.id IN (:ids)
+                SELECT LOWER(HEX(app.id)) AS app_id, requested_privileges
+                FROM app
+                WHERE id IN (:ids)
             SQL,
             ['ids' => Uuid::fromHexToBytesList($appIds)],
             ['ids' => ArrayParameterType::STRING]
@@ -198,11 +196,22 @@ class Privileges
         $this->connection->executeStatement(
             <<<'SQL'
                 UPDATE `acl_role`
-                SET `privileges` = :privileges, `requested_privileges` = :requestedPrivileges
+                SET `privileges` = :privileges
                 WHERE id = (SELECT acl_role_id FROM app WHERE id = :id)
             SQL,
             [
                 'privileges' => json_encode($privileges, \JSON_THROW_ON_ERROR),
+                'id' => Uuid::fromHexToBytes($appId),
+            ]
+        );
+
+        $this->connection->executeStatement(
+            <<<'SQL'
+                UPDATE `app`
+                SET `requested_privileges` = :requestedPrivileges
+                WHERE id = :id
+            SQL,
+            [
                 'requestedPrivileges' => json_encode($requestedPrivileges, \JSON_THROW_ON_ERROR),
                 'id' => Uuid::fromHexToBytes($appId),
             ]
