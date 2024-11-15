@@ -2,6 +2,9 @@
 
 namespace Shopware\Core\Framework\App\Lifecycle;
 
+use Shopware\Core\Framework\App\AppCollection;
+use Shopware\Core\Framework\App\Lifecycle\Parameters\AppInstallParameters;
+use Shopware\Core\Framework\App\Lifecycle\Parameters\AppUpdateParameters;
 use Shopware\Core\Framework\App\Manifest\Manifest;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
@@ -30,7 +33,7 @@ class AppLifecycleIterator
      */
     public function iterateOverApps(
         AbstractAppLifecycle $appLifecycle,
-        AppOptionsInstall $options,
+        AppInstallParameters $parameters,
         Context $context,
         array $installAppNames = []
     ): array {
@@ -48,7 +51,7 @@ class AppLifecycleIterator
                 if (!\array_key_exists($manifest->getMetadata()->getName(), $installedApps)) {
                     $appLifecycle->install(
                         $manifest,
-                        $options,
+                        $parameters,
                         $context
                     );
                     $successfulUpdates[] = $manifest->getMetadata()->getName();
@@ -60,7 +63,7 @@ class AppLifecycleIterator
                 if (version_compare($manifest->getMetadata()->getVersion(), $app['version']) > 0) {
                     $appLifecycle->update(
                         $manifest,
-                        new AppOptionsUpdate($options->activate),
+                        new AppUpdateParameters($parameters->activate),
                         $app,
                         $context
                     );

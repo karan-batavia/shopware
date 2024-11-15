@@ -21,7 +21,7 @@ use Shopware\Core\Defaults;
 use Shopware\Core\Framework\App\AppCollection;
 use Shopware\Core\Framework\App\AppEntity;
 use Shopware\Core\Framework\App\Lifecycle\AppLifecycle;
-use Shopware\Core\Framework\App\Lifecycle\AppOptionsInstall;
+use Shopware\Core\Framework\App\Lifecycle\Parameters\AppInstallParameters;
 use Shopware\Core\Framework\App\Manifest\Manifest;
 use Shopware\Core\Framework\App\ShopId\ShopIdProvider;
 use Shopware\Core\Framework\Context;
@@ -114,7 +114,7 @@ abstract class AbstractAppPaymentHandlerTestCase extends TestCase
         $manifest = Manifest::createFromXmlFile(__DIR__ . '/_fixtures/testPayments/manifest.xml');
 
         $appLifecycle = static::getContainer()->get(AppLifecycle::class);
-        $appLifecycle->install($manifest, new AppOptionsInstall(activate: true), $this->context);
+        $appLifecycle->install($manifest, new AppInstallParameters(activate: true), $this->context);
 
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('name', 'testPayments'));

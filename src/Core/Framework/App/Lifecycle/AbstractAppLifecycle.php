@@ -2,6 +2,8 @@
 
 namespace Shopware\Core\Framework\App\Lifecycle;
 
+use Shopware\Core\Framework\App\Lifecycle\Parameters\AppInstallParameters;
+use Shopware\Core\Framework\App\Lifecycle\Parameters\AppUpdateParameters;
 use Shopware\Core\Framework\App\Manifest\Manifest;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\Log\Package;
@@ -14,12 +16,12 @@ abstract class AbstractAppLifecycle
 {
     abstract public function getDecorated(): AbstractAppLifecycle;
 
-    abstract public function install(Manifest $manifest, AppOptionsInstall $options, Context $context): void;
+    abstract public function install(Manifest $manifest, AppInstallParameters $parameters, Context $context): void;
 
     /**
      * @param array{id: string, roleId: string} $app
      */
-    abstract public function update(Manifest $manifest, AppOptionsUpdate $options, array $app, Context $context): void;
+    abstract public function update(Manifest $manifest, AppUpdateParameters $parameters, array $app, Context $context): void;
 
     /**
      * @param array{id: string} $app

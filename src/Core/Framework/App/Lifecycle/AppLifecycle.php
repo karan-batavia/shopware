@@ -24,6 +24,8 @@ use Shopware\Core\Framework\App\Event\PostAppDeletedEvent;
 use Shopware\Core\Framework\App\Exception\AppRegistrationException;
 use Shopware\Core\Framework\App\Flow\Action\Action;
 use Shopware\Core\Framework\App\Flow\Event\Event;
+use Shopware\Core\Framework\App\Lifecycle\Parameters\AppInstallParameters;
+use Shopware\Core\Framework\App\Lifecycle\Parameters\AppUpdateParameters;
 use Shopware\Core\Framework\App\Lifecycle\Persister\ActionButtonPersister;
 use Shopware\Core\Framework\App\Lifecycle\Persister\CmsBlockPersister;
 use Shopware\Core\Framework\App\Lifecycle\Persister\CustomFieldPersister;
@@ -119,7 +121,7 @@ class AppLifecycle extends AbstractAppLifecycle
         throw new DecorationPatternException(self::class);
     }
 
-    public function install(Manifest $manifest, AppOptionsInstall $options, Context $context): void
+    public function install(Manifest $manifest, AppInstallParameters $parameters, Context $context): void
     {
         $this->ensureIsCompatible($manifest);
 
@@ -136,7 +138,7 @@ class AppLifecycle extends AbstractAppLifecycle
 
         $app = $this->updateApp(
             $manifest,
-            new AppOptionsUpdate($options->acceptPermissions),
+            new AppUpdateParameters($parameters->acceptPermissions),
             $metadata,
             $appId,
             $roleId,
@@ -149,20 +151,20 @@ class AppLifecycle extends AbstractAppLifecycle
         $this->eventDispatcher->dispatch($event);
         $this->scriptExecutor->execute(new AppInstalledHook($event));
 
-        if ($options->activate) {
+        if ($parameters->activate) {
             $this->appStateService->activateApp($appId, $context);
         }
 
         $this->updateAclRole($app->getName(), $context);
     }
 
-    public function update(Manifest $manifest, AppOptionsUpdate $options, array $app, Context $context): void
+    public function update(Manifest $manifest, AppUpdateParameters $parameters, array $app, Context $context): void
     {
         $this->ensureIsCompatible($manifest);
 
         $defaultLocale = $this->getDefaultLocale($context);
         $metadata = $manifest->getMetadata()->toArray($defaultLocale);
-        $appEntity = $this->updateApp($manifest, $options, $metadata, $app['id'], $app['roleId'], $defaultLocale, $context, false);
+        $appEntity = $this->updateApp($manifest, $parameters, $metadata, $app['id'], $app['roleId'], $defaultLocale, $context, false);
 
         $event = new AppUpdatedEvent($appEntity, $manifest, $context);
         $this->eventDispatcher->dispatch($event);
@@ -198,7 +200,7 @@ class AppLifecycle extends AbstractAppLifecycle
      */
     private function updateApp(
         Manifest $manifest,
-        AppOptionsUpdate $options,
+        AppUpdateParameters $parameters,
         array $metadata,
         string $id,
         string $roleId,
@@ -231,7 +233,7 @@ class AppLifecycle extends AbstractAppLifecycle
         $this->permissionPersister->updatePrivileges(
             $manifest->getPermissions(),
             $app->getId(),
-            $options->acceptPermissions,
+            $parameters->acceptPermissions,
             $context
         );
 

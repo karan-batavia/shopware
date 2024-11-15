@@ -1,26 +1,26 @@
 <?php declare(strict_types=1);
 
-namespace Shopware\Tests\Unit\Core\Framework\App\Lifecycle;
+namespace Shopware\Tests\Unit\Core\Framework\App\Lifecycle\Parameters;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Shopware\Core\Framework\App\Lifecycle\AppOptionsUpdate;
+use Shopware\Core\Framework\App\Lifecycle\Parameters\AppUpdateParameters;
 use Shopware\Core\Framework\Log\Package;
 
 /**
  * @internal
  */
 #[Package('core')]
-#[CoversClass(AppOptionsUpdate::class)]
-class AppOptionsUpdateTest extends TestCase
+#[CoversClass(AppUpdateParameters::class)]
+class AppUpdateParametersTest extends TestCase
 {
     public function testAccessors(): void
     {
-        $options = new AppOptionsUpdate();
+        $options = new AppUpdateParameters();
 
         static::assertTrue($options->acceptPermissions);
 
-        $options = new AppOptionsUpdate(false);
+        $options = new AppUpdateParameters(false);
 
         static::assertFalse($options->acceptPermissions);
     }

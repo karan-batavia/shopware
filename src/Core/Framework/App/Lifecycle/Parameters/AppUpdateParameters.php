@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Shopware\Core\Framework\App\Lifecycle;
+namespace Shopware\Core\Framework\App\Lifecycle\Parameters;
 
 use Shopware\Core\Framework\Log\Package;
 
@@ -8,7 +8,7 @@ use Shopware\Core\Framework\Log\Package;
  * @internal
  */
 #[Package('core')]
-class AppOptionsUpdate
+class AppUpdateParameters
 {
     public function __construct(
         public readonly bool $acceptPermissions = true

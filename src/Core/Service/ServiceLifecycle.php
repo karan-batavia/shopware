@@ -8,8 +8,8 @@ use Shopware\Core\Framework\App\AppEntity;
 use Shopware\Core\Framework\App\AppException;
 use Shopware\Core\Framework\App\AppStateService;
 use Shopware\Core\Framework\App\Lifecycle\AbstractAppLifecycle;
-use Shopware\Core\Framework\App\Lifecycle\AppOptionsInstall;
-use Shopware\Core\Framework\App\Lifecycle\AppOptionsUpdate;
+use Shopware\Core\Framework\App\Lifecycle\Parameters\AppInstallParameters;
+use Shopware\Core\Framework\App\Lifecycle\Parameters\AppUpdateParameters;
 use Shopware\Core\Framework\App\Manifest\Manifest;
 use Shopware\Core\Framework\App\Manifest\ManifestFactory;
 use Shopware\Core\Framework\Context;
@@ -71,7 +71,7 @@ class ServiceLifecycle
         try {
             $this->appLifecycle->install(
                 $manifest,
-                new AppOptionsInstall(
+                new AppInstallParameters(
                     activate: $serviceEntry->activateOnInstall,
                     acceptPermissions: $this->servicePermissions->canAcceptPermissions()
                 ),
@@ -123,7 +123,7 @@ class ServiceLifecycle
         try {
             $this->appLifecycle->update(
                 $manifest,
-                new AppOptionsUpdate(acceptPermissions: $this->servicePermissions->canAcceptPermissions()),
+                new AppUpdateParameters(acceptPermissions: $this->servicePermissions->canAcceptPermissions()),
                 [
                     'id' => $app->getId(),
                     'roleId' => $app->getAclRoleId(),
