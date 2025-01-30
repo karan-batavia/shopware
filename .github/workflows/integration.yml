@@ -139,7 +139,7 @@ jobs:
     if: ${{ github.event_name != 'pull_request' }}
     outputs:
       matrix: ${{ steps.generate-matrix.outputs.matrix }}
-    steps: 
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
       - id: generate-matrix
@@ -153,7 +153,7 @@ jobs:
   phpunit:
     name: "${{ matrix.php}} ${{ matrix.test.testsuite }}${{ matrix.test.path }} ${{ matrix.db }}"
     if: ${{ github.event_name != 'pull_request' }}
-    needs: 
+    needs:
       - phpunit-matrix
     runs-on: ubuntu-24.04
     strategy: ${{ fromJson(needs.phpunit-matrix.outputs.matrix) }}
@@ -431,8 +431,8 @@ jobs:
           path: new-shopware/tests/acceptance/test-results/
           retention-days: 3
 
-  blue-green-66-67:
-    name: "PHP blue green 6.6 -> 6.7 -> 6.6"
+  blue-green-67-68:
+    name: "PHP blue green 6.7 -> 6.8 -> 6.7"
     runs-on: ubuntu-24.04
     if: ${{ github.event_name != 'pull_request' }}
     env:
@@ -469,7 +469,7 @@ jobs:
 
       - name: Run next major migrations on test DB
         if: ${{ contains(github.workflow_ref, 'nightly') }}
-        run: DATABASE_URL="mysql://root@127.0.0.1:3306/shopware_test" bin/console database:migrate --all core.V6_7
+        run: DATABASE_URL="mysql://root@127.0.0.1:3306/shopware_test" bin/console database:migrate --all core.V6_8
 
       - name: Run integration tests
         if: ${{ contains(github.workflow_ref, 'nightly') }}
@@ -481,11 +481,11 @@ jobs:
 
       - name: Run next major migrations
         if: ${{ !contains(github.workflow_ref, 'nightly') }}
-        run: bin/console database:migrate --all core.V6_7
+        run: bin/console database:migrate --all core.V6_8
 
       - name: Run blue-green check
         if: ${{ !contains(github.workflow_ref, 'nightly') }}
-        run: php .gitlab/bin/blue-green-check.php # TODO: Move script to .github after migration
+        run: php .github/bin/blue-green-check.php
 
   # this allows us to specifiy just one required job/check
   # this is not practical with matrix jobs directly, because you've to specify all permutations
