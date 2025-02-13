@@ -10,7 +10,7 @@ use Shopware\Core\Framework\Store\Struct\PermissionStruct;
 /**
  * @internal
  */
-#[Package('core')]
+#[Package('framework')]
 class Utils
 {
     /**

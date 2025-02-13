@@ -11,7 +11,7 @@ use Shopware\Core\System\SystemConfig\SystemConfigService;
 /**
  * @internal
  */
-#[Package('core')]
+#[Package('framework')]
 class ServicePrivileges
 {
     private const PENDING = 'pending';

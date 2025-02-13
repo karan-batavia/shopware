@@ -17,7 +17,7 @@ use Symfony\Component\Routing\Attribute\Route;
 /**
  * @internal
  */
-#[Package('core')]
+#[Package('framework')]
 #[Route(defaults: ['_routeScope' => ['api']])]
 class ConsentController
 {

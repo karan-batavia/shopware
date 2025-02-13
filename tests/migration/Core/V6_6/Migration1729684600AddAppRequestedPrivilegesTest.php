@@ -13,7 +13,7 @@ use Shopware\Core\Migration\V6_6\Migration1729684600AddAppRequestedPrivileges;
 /**
  * @internal
  */
-#[Package('core')]
+#[Package('framework')]
 #[CoversClass(Migration1729684600AddAppRequestedPrivileges::class)]
 class Migration1729684600AddAppRequestedPrivilegesTest extends TestCase
 {

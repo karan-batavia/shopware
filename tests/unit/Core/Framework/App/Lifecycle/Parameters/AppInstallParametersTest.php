@@ -10,7 +10,7 @@ use Shopware\Core\Framework\Log\Package;
 /**
  * @internal
  */
-#[Package('core')]
+#[Package('framework')]
 #[CoversClass(AppInstallParameters::class)]
 class AppInstallParametersTest extends TestCase
 {

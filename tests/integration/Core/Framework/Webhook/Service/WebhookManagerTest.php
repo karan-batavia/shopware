@@ -705,22 +705,18 @@ class WebhookManagerTest extends TestCase
         $appId = Uuid::randomHex();
         $aclRoleId = Uuid::randomHex();
 
-        $this->createApp(appId: $appId, aclRoleId: $aclRoleId, webhooks: [
-            [
-                'name' => 'hook1',
-                'event_name' => ProductEvents::PRODUCT_WRITTEN_EVENT,
-                'url' => 'https://test.com',
+        $this->createApp(
+            appId: $appId,
+            aclRoleId: $aclRoleId,
+            webhooks: [
+                [
+                    'name' => 'hook1',
+                    'event_name' => ProductEvents::PRODUCT_WRITTEN_EVENT,
+                    'url' => 'https://test.com',
+                ],
             ],
-        ]);
-
-        $permissionPersister = static::getContainer()->get(PermissionPersister::class);
-        $permissions = Permissions::fromArray([
-            'permissions' => [
-                'product' => ['read'],
-            ],
-        ]);
-
-        $permissionPersister->updatePrivileges($permissions, $aclRoleId);
+            permissions: ['product' => ['read']]
+        );
 
         $this->appendNewResponse(new Response(200));
 
@@ -962,8 +958,14 @@ class WebhookManagerTest extends TestCase
      * @param list<array{id?: string, name: string, event_name: string, url: string}>|null $webhooks
      * @param array<string, list<string>>|null $permissions
      */
-    private function createApp(?string $appId = null, bool $active = true, ?string $aclRoleId = null, ?array $webhooks = null, ?array $permissions = null): void
-    {
+    private function createApp(
+        ?string $appId = null,
+        bool $active = true,
+        ?string $aclRoleId = null,
+        ?array $webhooks = null,
+        ?array $permissions = null,
+        bool $acceptPermissions = true,
+    ): void {
         $context = Context::createDefaultContext();
 
         $app = [
@@ -1012,13 +1014,13 @@ class WebhookManagerTest extends TestCase
             $this->createWebhook($webhook['name'], $webhook['event_name'], $webhook['url'], $app->getId(), $webhook['id'] ?? null);
         }
 
-        if ($permissions !== null && $aclRoleId !== null) {
+        if ($permissions !== null && $appId !== null) {
             $permissionPersister = static::getContainer()->get(PermissionPersister::class);
             $permissions = Permissions::fromArray([
                 'permissions' => $permissions,
             ]);
 
-            $permissionPersister->updatePrivileges($permissions, $appId, false, $context);
+            $permissionPersister->updatePrivileges($permissions, $appId, $acceptPermissions, $context);
         }
     }
 

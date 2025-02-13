@@ -15,7 +15,7 @@ use Shopware\Core\Framework\Uuid\Uuid;
  *
  * @codeCoverageIgnore @see \Shopware\Tests\Integration\Core\Framework\App\Permission\PrivilegesTest
  */
-#[Package('core')]
+#[Package('framework')]
 class Privileges
 {
     public function __construct(
