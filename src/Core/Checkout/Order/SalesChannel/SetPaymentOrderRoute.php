@@ -7,6 +7,7 @@ use Shopware\Core\Checkout\Cart\CartRuleLoader;
 use Shopware\Core\Checkout\Cart\Order\OrderConverter;
 use Shopware\Core\Checkout\Cart\Price\Struct\CalculatedPrice;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
+use Shopware\Core\Checkout\Gateway\SalesChannel\AbstractCheckoutGatewayRoute;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStates;
 use Shopware\Core\Checkout\Order\Event\OrderPaymentMethodChangedCriteriaEvent;
@@ -14,7 +15,6 @@ use Shopware\Core\Checkout\Order\Event\OrderPaymentMethodChangedEvent;
 use Shopware\Core\Checkout\Order\Exception\PaymentMethodNotChangeableException;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Order\OrderException;
-use Shopware\Core\Checkout\Payment\SalesChannel\AbstractPaymentMethodRoute;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\EntityNotFoundException;
@@ -23,6 +23,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
 use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\Framework\Plugin\Exception\DecorationPatternException;
+use Shopware\Core\Framework\Uuid\Exception\InvalidUuidException;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextService;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
@@ -44,11 +45,11 @@ class SetPaymentOrderRoute extends AbstractSetPaymentOrderRoute
     public function __construct(
         private readonly OrderService $orderService,
         private readonly EntityRepository $orderRepository,
-        private readonly AbstractPaymentMethodRoute $paymentRoute,
         private readonly OrderConverter $orderConverter,
         private readonly CartRuleLoader $cartRuleLoader,
         private readonly EventDispatcherInterface $eventDispatcher,
-        private readonly InitialStateIdLoader $initialStateIdLoader
+        private readonly InitialStateIdLoader $initialStateIdLoader,
+        private readonly AbstractCheckoutGatewayRoute $checkoutGatewayRoute
     ) {
     }
 
@@ -61,8 +62,15 @@ class SetPaymentOrderRoute extends AbstractSetPaymentOrderRoute
     public function setPayment(Request $request, SalesChannelContext $context): SetPaymentOrderRouteResponse
     {
         $paymentMethodId = (string) $request->request->get('paymentMethodId');
+        if (!Uuid::isValid($paymentMethodId) ) {
+            throw new InvalidUuidException($paymentMethodId);
+        }
 
         $orderId = (string) $request->request->get('orderId');
+        if (!Uuid::isValid($orderId) ) {
+            throw new InvalidUuidException($orderId);
+        }
+
         $order = $this->loadOrder($orderId, $context);
 
         $context = $this->orderConverter->assembleSalesChannelContext(
@@ -71,7 +79,7 @@ class SetPaymentOrderRoute extends AbstractSetPaymentOrderRoute
             [SalesChannelContextService::PAYMENT_METHOD_ID => $paymentMethodId]
         );
 
-        $this->validateRequest($context, $paymentMethodId);
+        $this->validateRequest($context, $paymentMethodId, $order);
 
         $this->validatePaymentState($order);
 
@@ -133,14 +141,12 @@ class SetPaymentOrderRoute extends AbstractSetPaymentOrderRoute
         $this->eventDispatcher->dispatch($event);
     }
 
-    private function validateRequest(SalesChannelContext $salesChannelContext, string $paymentMethodId): void
+    private function validateRequest(SalesChannelContext $salesChannelContext, string $paymentMethodId, OrderEntity $order): void
     {
-        $paymentRequest = new Request();
-        $paymentRequest->query->set('onlyAvailable', '1');
+        $cart = $this->orderConverter->convertToCart($order, $salesChannelContext->getContext());
+        $response = $this->checkoutGatewayRoute->load(new Request(), $cart, $salesChannelContext);
 
-        $availablePayments = $this->paymentRoute->load($paymentRequest, $salesChannelContext, new Criteria());
-
-        if ($availablePayments->getPaymentMethods()->get($paymentMethodId) === null) {
+        if ($response->getPaymentMethods()->get($paymentMethodId) === null) {
             throw OrderException::paymentMethodNotAvailable($paymentMethodId);
         }
     }
