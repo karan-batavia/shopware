@@ -53,7 +53,7 @@ jobs:
   clean-ghcr:
     name: Delete old unused container images
     runs-on: ubuntu-24.04
-    if: github.repository == 'shopware/shopware'
+    if: github.repository == 'shopware/shopware' && github.ref_protected
     steps:
       - name: Collect skipped SHAs
         id: skip-sha
@@ -89,7 +89,7 @@ jobs:
   redis:
     name: Redis
     runs-on: ubuntu-24.04
-    if: github.repository == 'shopware/shopware'
+    if: github.repository == 'shopware/shopware' && github.ref_protected
     strategy:
       fail-fast: false
       matrix:
@@ -119,31 +119,31 @@ jobs:
   admin:
     uses: ./.github/workflows/admin.yml
     secrets: inherit
-    if: github.repository == 'shopware/shopware'
+    if: github.repository == 'shopware/shopware' && github.ref_protected
   integration:
     uses: ./.github/workflows/integration.yml
     secrets: inherit
-    if: github.repository == 'shopware/shopware'
+    if: github.repository == 'shopware/shopware' && github.ref_protected
     with:
       nightly: true
   php:
     uses: ./.github/workflows/php.yml
     secrets: inherit
-    if: github.repository == 'shopware/shopware'
+    if: github.repository == 'shopware/shopware' && github.ref_protected
   storefront:
     uses: ./.github/workflows/storefront.yml
     secrets: inherit
-    if: github.repository == 'shopware/shopware'
+    if: github.repository == 'shopware/shopware' && github.ref_protected
   downstream:
     uses: ./.github/workflows/downstream.yml
     secrets: inherit
-    if: github.repository == 'shopware/shopware'
+    if: github.repository == 'shopware/shopware' && github.ref_protected
     with:
       nightly: true
   prepare-release: # This will only execute dry-runs and push current trunk to the many-repos
     uses: ./.github/workflows/05-prepare-release.yml
     secrets: inherit
-    if: github.repository == 'shopware/shopware'
+    if: github.repository == 'shopware/shopware' && github.ref_protected
 
   nightly-6-6-x:
     runs-on: ubuntu-24.04
