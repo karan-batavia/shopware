@@ -264,6 +264,7 @@ async function lintFiles(filePaths, fix, shopwareVersion) {
                                         'sw-switch-field',
                                         'sw-textarea-field',
                                         'sw-icon',
+                                        'sw-number-field',
                                     ],
                                 }],
                                 'sw-deprecation-rules/no-deprecated-component-usage': ['error'],

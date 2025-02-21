@@ -175,9 +175,9 @@ async function createWrapper() {
                 'sw-highlight-text': true,
                 'sw-loader': true,
                 'sw-field-error': true,
-                'sw-number-field': {
+                'mt-number-field': {
                     template: `
-                        <div class="sw-number-field">
+                        <div class="mt-number-field">
                             <input type="number" :value="value" @input="$emit('change', Number($event.target.value))"/>
                             <slot name="suffix"></slot>
                         </div>
@@ -351,7 +351,7 @@ describe('src/module/sw-order/view/sw-order-create-options', () => {
         const wrapper = await createWrapper();
 
         const shippingCostField = wrapper.findComponent('.sw-order-create-options__shipping-cost');
-        await shippingCostField.vm.$emit('update:value', 100);
+        await shippingCostField.vm.$emit('update:modelValue', 100);
 
         expect(wrapper.emitted('shipping-cost-change')).toBeTruthy();
         expect(wrapper.emitted('shipping-cost-change')[0][0]).toBe(100);

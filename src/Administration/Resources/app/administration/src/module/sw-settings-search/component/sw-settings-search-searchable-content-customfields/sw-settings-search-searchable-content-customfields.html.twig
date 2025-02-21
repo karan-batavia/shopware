@@ -88,7 +88,7 @@
         <template #column-ranking="{ item, isInlineEdit }">
             <template v-if="isInlineEdit">
                 {% block sw_settings_search_searchable_content_customfields_ranking_editor %}
-                <sw-number-field
+                <mt-number-field
                     v-model:value="item.ranking"
                     number-type="int"
                     size="small"

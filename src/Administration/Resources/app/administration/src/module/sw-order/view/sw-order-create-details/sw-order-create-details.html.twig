@@ -89,7 +89,7 @@
                 required
             />
 
-            <sw-number-field
+            <mt-number-field
                 v-model:value="shippingCosts"
                 :label="$tc('sw-order.createBase.labelShippingCosts')"
                 :min="0"
@@ -99,7 +99,7 @@
                 <template #suffix>
                     {{ currency.symbol }}
                 </template>
-            </sw-number-field>
+            </mt-number-field>
 
             <sw-datepicker
                 v-model:value="deliveryDate"

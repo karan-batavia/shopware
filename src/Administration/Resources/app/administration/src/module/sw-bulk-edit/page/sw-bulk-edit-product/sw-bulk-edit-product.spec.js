@@ -85,9 +85,6 @@ describe('src/module/sw-bulk-edit/page/sw-bulk-edit-product', () => {
                     'sw-ignore-class': true,
                     'sw-select-base': await wrapTestComponent('sw-select-base'),
                     'sw-single-select': await wrapTestComponent('sw-single-select'),
-                    'sw-number-field': await wrapTestComponent('sw-number-field'),
-                    'sw-number-field-deprecated': await wrapTestComponent('sw-number-field-deprecated', { sync: true }),
-
                     'sw-text-field': await wrapTestComponent('sw-text-field'),
                     'sw-text-field-deprecated': await wrapTestComponent('sw-text-field-deprecated', { sync: true }),
                     'sw-textarea-field': await wrapTestComponent('sw-textarea-field'),
@@ -144,7 +141,6 @@ describe('src/module/sw-bulk-edit/page/sw-bulk-edit-product', () => {
                     'sw-help-center-v2': true,
                     'sw-help-text': true,
                     'sw-field-copyable': true,
-                    'mt-number-field': true,
                     'sw-maintain-currencies-modal': true,
                     'sw-product-variant-info': true,
                     'mt-checkbox': true,

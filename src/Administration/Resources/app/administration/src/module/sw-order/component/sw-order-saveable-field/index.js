@@ -9,7 +9,10 @@ import './sw-order-saveable-field.scss';
 export default {
     template,
 
-    emits: ['value-change'],
+    emits: [
+        'value-change',
+        'update:value',
+    ],
 
     props: {
         // eslint-disable-next-line vue/require-prop-types
@@ -56,7 +59,7 @@ export default {
                 case 'email':
                     return 'sw-email-field';
                 case 'number':
-                    return 'sw-number-field';
+                    return 'mt-number-field';
                 case 'password':
                     return 'sw-password-field';
                 case 'radio':
@@ -72,6 +75,25 @@ export default {
                 default:
                     return 'sw-text-field';
             }
+        },
+
+        valuePropName() {
+            switch (this.component) {
+                case 'mt-textarea':
+                case 'mt-switch':
+                case 'mt-number-field':
+                    return 'modelValue';
+                default:
+                    return 'value';
+            }
+        },
+
+        computedAttrs() {
+            return {
+                ...this.$attrs,
+                [this.valuePropName]: this.value,
+                'onUpdate:modelValue': (value) => this.$emit('update:value', value),
+            };
         },
     },
 

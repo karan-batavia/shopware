@@ -103,9 +103,9 @@ async function createWrapper() {
                 },
                 'sw-order-address-selection': true,
                 'sw-entity-single-select': true,
-                'sw-number-field': {
+                'mt-number-field': {
                     template:
-                        '<input class="sw-number-field" type="number" @input="$emit(\'input\', Number($event.target.value))" />',
+                        '<input class="mt-number-field" type="number" @input="$emit(\'input\', Number($event.target.value))" />',
                     props: {
                         value: 0,
                     },

@@ -66,8 +66,8 @@ async function createWrapper(propsData = {}) {
                         template: '<input class="sw-text-field"></input>',
                         props: ['value'],
                     },
-                    'sw-number-field': {
-                        template: '<input class="sw-number-field"></input>',
+                    'mt-number-field': {
+                        template: '<input class="mt-number-field"></input>',
                         props: ['value'],
                     },
 

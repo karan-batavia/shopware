@@ -52,7 +52,7 @@
             gap="0 30px"
         >
             {% block sw_flow_detail_general_information_priority %}
-            <sw-number-field
+            <mt-number-field
                 v-if="!isFlowTemplate"
                 v-model:value="flow.priority"
                 class="sw-flow-detail-general__general-priority"

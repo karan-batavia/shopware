@@ -187,8 +187,8 @@
 
                     <div class="sw-cms-el-config-image-slider__setting-option">
                         <div class="sw-cms-el-config-image-slider__setting-delay">
-                            <sw-number-field
-                                v-model:value="element.config.autoplayTimeout.value"
+                            <mt-number-field
+                                v-model="element.config.autoplayTimeout.value"
                                 class="sw-cms-el-config-image-slider__setting-delay-slide"
                                 number-type="int"
                                 :min="0"
@@ -200,8 +200,8 @@
                             />
                         </div>
                         <div class="sw-cms-el-config-image-slider__setting-speed">
-                            <sw-number-field
-                                v-model:value="element.config.speed.value"
+                            <mt-number-field
+                                v-model="element.config.speed.value"
                                 class="sw-cms-el-config-image-slider__setting-speed-slide"
                                 number-type="int"
                                 :min="0"

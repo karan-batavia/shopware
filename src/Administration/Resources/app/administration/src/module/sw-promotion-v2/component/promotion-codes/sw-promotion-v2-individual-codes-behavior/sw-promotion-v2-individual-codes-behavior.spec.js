@@ -37,8 +37,8 @@ async function createWrapper(additionalPromotionData = {}) {
                             '<button class="sw-button-process" @click="$emit(\'click\', $event.target.value)"></button>',
                         props: ['disabled'],
                     },
-                    'sw-number-field': {
-                        template: '<div class="sw-number-field"><slot></slot></div>',
+                    'mt-number-field': {
+                        template: '<div class="mt-number-field"><slot></slot></div>',
                         props: ['value'],
                     },
                     'sw-loader': true,

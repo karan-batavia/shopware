@@ -60,10 +60,6 @@ const setup = async (propOverride) => {
     return mount(await wrapTestComponent('sw-price-field', { sync: true }), {
         global: {
             stubs: {
-                'sw-number-field': await wrapTestComponent('sw-number-field', {
-                    sync: true,
-                }),
-                'sw-number-field-deprecated': await wrapTestComponent('sw-number-field-deprecated', { sync: true }),
                 'sw-contextual-field': await wrapTestComponent('sw-contextual-field', { sync: true }),
                 'sw-block-field': await wrapTestComponent('sw-block-field', {
                     sync: true,
@@ -224,8 +220,8 @@ describe('components/form/sw-price-field', () => {
             netHelpText: 'help for net price',
         });
 
-        expect(wrapper.find('.sw-price-field__gross sw-help-text-stub').attributes().text).toBe('help for gross price');
-        expect(wrapper.find('.sw-price-field__net sw-help-text-stub').attributes().text).toBe('help for net price');
+        expect(wrapper.findByText('div', 'help for gross price').exists()).toBe(true);
+        expect(wrapper.findByText('div', 'help for net price').exists()).toBe(true);
     });
 
     it('should set gross value when the net value is updated', async () => {

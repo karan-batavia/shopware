@@ -48,6 +48,7 @@ import wrapTestComponent from '../_helper_/componentWrapper';
 import 'blob-polyfill';
 import { sendTimeoutExpired } from '../_helper_/allowedErrors';
 import findByText from '../_helper_/find-by-text';
+import findByLabel from '../_helper_/find-by-label';
 
 // initialize the Stores
 import '../../src/module/sw-cms/store/cms-page.store';
@@ -102,6 +103,8 @@ config.plugins.VueWrapper.install((wrapper) => {
     wrapper.findByText = (selector, text) => findByText(wrapper, selector, text);
     // add `findByAriaLabel` to the global config
     wrapper.findByAriaLabel = (selector, text) => findByAriaLabel(wrapper, selector, text);
+    // add `findByLabel` to the global config
+    wrapper.findByLabel = (text) => findByLabel(wrapper, text);
 });
 
 // enable autoUnmount for wrapper after each test
