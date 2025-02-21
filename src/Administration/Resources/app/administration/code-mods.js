@@ -263,6 +263,7 @@ async function lintFiles(filePaths, fix, shopwareVersion) {
                                         'sw-text-field',
                                         'sw-switch-field',
                                         'sw-textarea-field',
+                                        'sw-datepicker',
                                         'sw-icon',
                                     ],
                                 }],
