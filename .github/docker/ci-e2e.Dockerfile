@@ -14,11 +14,17 @@ RUN --mount=type=secret,id=composer_auth,dst=/src/auth.json \
     --mount=type=cache,target=/root/.npm <<EOF
 set -euo pipefail
 
-shopware-cli project create /src ${SHOPWARE_COMPOSER_VERSION_REF} --verbose
+if [[ "${SHOPWARE_COMPOSER_VERSION_REF}" =~ ^dev-.* ]]; then
+    export COMPOSER_ROOT_VERSION="6.6.9999999-dev"
+
+    git clone --branch "${SHOPWARE_COMPOSER_VERSION_REF#dev-}" --depth 1 https://github.com/shopware/shopware.git /src
+else
+    shopware-cli project create /src ${SHOPWARE_COMPOSER_VERSION_REF#v} --verbose
+fi
 
 composer -d /src require --ignore-platform-reqs --no-interaction "shopware/deployment-helper"
 
-shopware-cli project ci /src
+shopware-cli project ci --with-dev-dependencies /src
 EOF
 
 FROM base-image
