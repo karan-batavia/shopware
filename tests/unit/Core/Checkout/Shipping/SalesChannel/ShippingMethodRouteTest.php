@@ -13,6 +13,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
 use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\Framework\Plugin\Exception\DecorationPatternException;
+use Shopware\Core\Framework\Rule\RuleIdMatcher;
 use Shopware\Core\Framework\Script\Execution\ScriptExecutor;
 use Shopware\Core\System\SalesChannel\Entity\SalesChannelRepository;
 use Shopware\Core\Test\Generator;
@@ -28,7 +29,12 @@ class ShippingMethodRouteTest extends TestCase
 {
     public function testGetDecorated(): void
     {
-        $route = new ShippingMethodRoute($this->createMock(SalesChannelRepository::class), new EventDispatcher(), $this->createMock(ScriptExecutor::class));
+        $route = new ShippingMethodRoute(
+            $this->createMock(SalesChannelRepository::class),
+            new EventDispatcher(),
+            $this->createMock(ScriptExecutor::class),
+            new RuleIdMatcher(),
+        );
 
         $this->expectException(DecorationPatternException::class);
 
@@ -65,10 +71,67 @@ class ShippingMethodRouteTest extends TestCase
             ->with(static::equalTo($expectedCriteria), $context)
             ->willReturn($result);
 
-        $route = new ShippingMethodRoute($repo, new EventDispatcher(), $this->createMock(ScriptExecutor::class));
+        $route = new ShippingMethodRoute(
+            $repo,
+            new EventDispatcher(),
+            $this->createMock(ScriptExecutor::class),
+            new RuleIdMatcher()
+        );
 
         $response = $route->load($request, $context, $criteria);
 
         static::assertSame($entities, $response->getShippingMethods());
+    }
+
+    public function testOnlyAvailableFlag(): void
+    {
+        $request = new Request();
+        $request->query->set('onlyAvailable', true);
+        $context = Generator::generateSalesChannelContext();
+        $context->setRuleIds(['rule_2']);
+        $criteria = new Criteria();
+
+        $expectedCriteria = clone $criteria;
+        $expectedCriteria->addFilter(new EqualsFilter('active', true));
+        $expectedCriteria->addSorting(new FieldSorting('position'), new FieldSorting('name', FieldSorting::ASCENDING));
+        $expectedCriteria->addAssociation('media');
+
+        $shippingMethod1 = new ShippingMethodEntity();
+        $shippingMethod1->setUniqueIdentifier('rule_1');
+        $shippingMethod1->setAvailabilityRuleId('rule_1');
+
+        $shippingMethod2 = new ShippingMethodEntity();
+        $shippingMethod2->setUniqueIdentifier('rule_2');
+        $shippingMethod2->setAvailabilityRuleId('rule_2');
+
+        $result = new EntitySearchResult(
+            'shipping_method',
+            1,
+            $entities = new ShippingMethodCollection([$shippingMethod1, $shippingMethod2]),
+            null,
+            $expectedCriteria,
+            $context->getContext()
+        );
+
+        $repo = $this->createMock(SalesChannelRepository::class);
+        $repo
+            ->expects(static::once())
+            ->method('search')
+            ->with(static::equalTo($expectedCriteria), $context)
+            ->willReturn($result);
+
+        $route = new ShippingMethodRoute(
+            $repo,
+            new EventDispatcher(),
+            $this->createMock(ScriptExecutor::class),
+            new RuleIdMatcher()
+        );
+
+        $response = $route->load($request, $context, $criteria);
+
+        $shippingMethods = $response->getShippingMethods();
+
+        static::assertCount(1, $shippingMethods);
+        static::assertSame('rule_2', $shippingMethods->first()?->getUniqueIdentifier());
     }
 }

@@ -6,6 +6,12 @@
 
 # Core
 
+## `filterByActiveRules` in Payment- and ShippingMethodCollection removed
+
+The `filterByActiveRules` methods in `Shopware\Core\Checkout\Payment\PaymentMethodCollection` and `Shopware\Core\Checkout\Shipping\ShippingMethodCollection` are deprecated.
+Use the new `Shopware\Core\Framework\Rule\RuleIdMatcher` instead.
+It allows filtering of RuleIdAware objects in either Arrays or Collections.
+
 # Administration
 
 # Storefront
