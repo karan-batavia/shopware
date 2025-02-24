@@ -10,6 +10,8 @@ use Shopware\Core\Checkout\Cart\LineItem\LineItem;
 use Shopware\Core\Checkout\Cart\LineItem\LineItemCollection;
 use Shopware\Core\Checkout\Cart\LineItem\LineItemFlatCollection;
 use Shopware\Core\Checkout\Cart\LineItem\LineItemQuantitySplitter;
+use Shopware\Core\Checkout\Cart\Order\IdStruct;
+use Shopware\Core\Checkout\Cart\Order\OrderConverter;
 use Shopware\Core\Checkout\Cart\Price\AbsolutePriceCalculator;
 use Shopware\Core\Checkout\Cart\Price\AmountCalculator;
 use Shopware\Core\Checkout\Cart\Price\PercentagePriceCalculator;
@@ -20,6 +22,8 @@ use Shopware\Core\Checkout\Cart\Price\Struct\PriceDefinitionInterface;
 use Shopware\Core\Checkout\Cart\Rule\CartRuleScope;
 use Shopware\Core\Checkout\Cart\Tax\Struct\CalculatedTaxCollection;
 use Shopware\Core\Checkout\Cart\Tax\Struct\TaxRuleCollection;
+use Shopware\Core\Checkout\Order\OrderCollection;
+use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Promotion\Aggregate\PromotionDiscount\PromotionDiscountEntity;
 use Shopware\Core\Checkout\Promotion\Cart\Discount\Calculator\DiscountAbsoluteCalculator;
 use Shopware\Core\Checkout\Promotion\Cart\Discount\Calculator\DiscountFixedPriceCalculator;
@@ -39,7 +43,14 @@ use Shopware\Core\Checkout\Promotion\Cart\Error\PromotionNotEligibleError;
 use Shopware\Core\Checkout\Promotion\Exception\DiscountCalculatorNotFoundException;
 use Shopware\Core\Checkout\Promotion\Exception\InvalidScopeDefinitionException;
 use Shopware\Core\Checkout\Promotion\PromotionException;
+use Shopware\Core\Content\Flow\Rule\FlowRuleScope;
+use Shopware\Core\Framework\Context;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\Log\Package;
+use Shopware\Core\Framework\Rule\Container\Container;
+use Shopware\Core\Framework\Rule\FlowRule;
+use Shopware\Core\Framework\Rule\Rule;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
 /**
@@ -57,6 +68,8 @@ class PromotionCalculator
 
     /**
      * @internal
+     *
+     * @param EntityRepository<OrderCollection> $orderRepository
      */
     public function __construct(
         private readonly AmountCalculator $amountCalculator,
@@ -70,7 +83,8 @@ class PromotionCalculator
         private readonly PercentagePriceCalculator $percentagePriceCalculator,
         private readonly DiscountPackager $cartScopeDiscountPackager,
         private readonly DiscountPackager $setGroupScopeDiscountPackager,
-        private readonly DiscountPackager $setScopeDiscountPackager
+        private readonly DiscountPackager $setScopeDiscountPackager,
+        private readonly EntityRepository $orderRepository,
     ) {
     }
 
@@ -368,19 +382,81 @@ class PromotionCalculator
      */
     private function isRequirementValid(LineItem $lineItem, Cart $calculated, SalesChannelContext $context): bool
     {
-        // if we dont have any requirement, then it's obviously valid
-        if (!$lineItem->getRequirement()) {
+        $requirement = $lineItem->getRequirement();
+
+        // if we don't have any requirement, then it's obviously valid
+        if (!$requirement) {
             return true;
         }
 
-        $scopeWithoutLineItem = new CartRuleScope($calculated, $context);
+        // build the necessary scope for the rule and fetch the required
+        // order for flow rules if available
+        $scopeWithoutLineItem = $this->buildRuleScope($requirement, $calculated, $context);
+
+        if (!$scopeWithoutLineItem) {
+            return false;
+        }
 
         // set our currently registered group builder in our cart data
         // to be able to use that one within our line item rule
         $data = $scopeWithoutLineItem->getCart()->getData();
         $data->set(LineItemGroupBuilder::class, $this->groupBuilder);
 
-        return $lineItem->getRequirement()->match($scopeWithoutLineItem);
+        return $requirement->match($scopeWithoutLineItem);
+    }
+
+    /**
+     * Builds the rule scope for the given line item.
+     */
+    private function buildRuleScope(Rule $rule, Cart $cart, SalesChannelContext $context): CartRuleScope|FlowRuleScope|null
+    {
+        if (!$this->hasFlowRuleScope($rule)) {
+            return new CartRuleScope($cart, $context);
+        }
+
+        $order = $this->fetchOrder($context->getContext(), $cart);
+
+        if (!$order) {
+            return null;
+        }
+
+        return new FlowRuleScope($order, $cart, $context);
+    }
+
+    /**
+     * Checks if the given rule has a flow rule scope.
+     *
+     * @param Rule[] $rules
+     */
+    private function hasFlowRuleScope(...$rules): bool
+    {
+        foreach ($rules as $item) {
+            if ($item instanceof FlowRule) {
+                return true;
+            }
+
+            if ($item instanceof Container) {
+                return $this->hasFlowRuleScope(...$item->getRules());
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * fetches the order entity from the cart
+     */
+    private function fetchOrder(Context $context, Cart $cart): ?OrderEntity
+    {
+        $orderIdStruct = $cart->getExtensions()[OrderConverter::ORIGINAL_ID] ?? null;
+
+        if (!($orderIdStruct instanceof IdStruct)) {
+            return null;
+        }
+
+        $criteria = new Criteria([$orderIdStruct->getId()]);
+
+        return $this->orderRepository->search($criteria, $context)->first();
     }
 
     /**
