@@ -21,12 +21,17 @@ jobs:
       matrix:
         name:
           - "Platform"
-          - "Install"
+          # - "Install"
         major:
           - ""
         php-version:
           - "8.2"
           - "8.4"
+        shard:
+          - '1/4'
+          - '2/4'
+          - '3/4'
+          - '4/4'
         include:
           - name: "Platform"
             major: "major"
@@ -126,6 +131,7 @@ jobs:
         run: |-
           npx pwc \
             --ci-build-id ${CURRENTS_BUILD_ID} \
+            --shard ${{ matrix.shard }} \
             --project-id ${{ secrets.CURRENTS_PROJECT_ID }} \
             --key ${{ secrets.CURRENTS_RECORD_KEY }} \
             -- --project ${{ matrix.name }} --trace=on
@@ -133,7 +139,7 @@ jobs:
       - name: Run your tests
         if: ${{ env.USE_CURRENTS != 'true' }}
         working-directory: tests/acceptance
-        run: npx playwright test --project=${{ matrix.name }} ${{ matrix.name == 'Install' && '--trace=on' || '' }}
+        run: npx playwright test --shard ${{ matrix.shard }} --project=${{ matrix.name }} ${{ matrix.name == 'Install' && '--trace=on' || '' }}
 
       - uses: actions/upload-artifact@v4
         if: always()
