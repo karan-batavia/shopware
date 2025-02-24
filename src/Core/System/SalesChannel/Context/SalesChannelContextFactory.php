@@ -108,10 +108,14 @@ class SalesChannelContextFactory extends AbstractSalesChannelContextFactory
             $itemRounding
         );
 
+        if (\array_key_exists(SalesChannelContextService::DOMAIN_ID, $options) && \is_string($options[SalesChannelContextService::DOMAIN_ID])) {
+            $domainId = $options[SalesChannelContextService::DOMAIN_ID];
+        }
+
         $salesChannelContext = new SalesChannelContext(
             $context,
             $token,
-            $options[SalesChannelContextService::DOMAIN_ID] ?? null,
+            $domainId ?? null,
             $base->getSalesChannel(),
             $base->getCurrency(),
             $customerGroup,
@@ -125,7 +129,7 @@ class SalesChannelContextFactory extends AbstractSalesChannelContextFactory
             $base->getLanguageInfo(),
         );
 
-        if (\array_key_exists(SalesChannelContextService::PERMISSIONS, $options)) {
+        if (\array_key_exists(SalesChannelContextService::PERMISSIONS, $options) && \is_array($options[SalesChannelContextService::PERMISSIONS])) {
             $salesChannelContext->setPermissions($options[SalesChannelContextService::PERMISSIONS]);
 
             $event = new SalesChannelContextPermissionsChangedEvent($salesChannelContext, $options[SalesChannelContextService::PERMISSIONS]);
@@ -134,7 +138,7 @@ class SalesChannelContextFactory extends AbstractSalesChannelContextFactory
             $salesChannelContext->lockPermissions();
         }
 
-        if (\array_key_exists(SalesChannelContextService::IMITATING_USER_ID, $options)) {
+        if (\array_key_exists(SalesChannelContextService::IMITATING_USER_ID, $options) && \is_string($options[SalesChannelContextService::IMITATING_USER_ID])) {
             $salesChannelContext->setImitatingUserId($options[SalesChannelContextService::IMITATING_USER_ID]);
         }
 
